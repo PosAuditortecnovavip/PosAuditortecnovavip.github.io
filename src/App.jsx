@@ -4,23 +4,6 @@ import { Dashboard } from './components/Dashboard/Dashboard';
 import { Sales } from './components/Sales/Sales';
 import { Audit } from './components/Audit/Audit';
 import { useExchangeRate } from './hooks/useExchangeRate';
-import { mockInventory } from './data/mockData';
-
-export default function App() {
-  const { exchangeRate, loading, convertUSDtoVES } = useExchangeRate();
-
-  const calculateTotalInventoryUSD = () => {
-    return mockInventory.reduce((total, item) => total + (item.costUSD * item.stock), 0);
-  };
-
-  return (
-    <HashRouter>
-import { HashRouter, Routes, Route } from 'react-router-dom';
-import { Layout } from './components/Layout/Layout';
-import { Dashboard } from './components/Dashboard/Dashboard';
-import { Sales } from './components/Sales/Sales';
-import { Audit } from './components/Audit/Audit';
-import { useExchangeRate } from './hooks/useExchangeRate';
 import { InventoryProvider, useInventory } from './context/InventoryContext';
 
 const DashboardWrapper = ({ exchangeRate, loading, convertUSDtoVES }) => {
