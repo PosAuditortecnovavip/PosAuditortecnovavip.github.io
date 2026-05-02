@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { Receipt, DollarSign, Minus, Plus, ShoppingCart } from 'lucide-react';
-import { Receipt as ReceiptModal } from './Receipt';
+import { ReceiptModal } from './Receipt';
+import { useInventory } from '../context/InventoryContext';
 
 export const QuickInvoice = ({ product, exchangeRate, convertUSDtoVES }) => {
   const [quantity, setQuantity] = useState(1);
   const [showReceipt, setShowReceipt] = useState(false);
+  const { sellProduct } = useInventory();
 
   if (!product) {
     return (
@@ -20,6 +22,8 @@ export const QuickInvoice = ({ product, exchangeRate, convertUSDtoVES }) => {
   const totalVES = convertUSDtoVES(totalUSD);
 
   const handleCobrar = () => {
+    if (quantity > product.stock) return; // protección
+    sellProduct(product.id, quantity);
     setShowReceipt(true);
   };
 
@@ -54,7 +58,10 @@ export const QuickInvoice = ({ product, exchangeRate, convertUSDtoVES }) => {
                 min="1"
                 max={product.stock}
                 value={quantity}
-                onChange={(e) => setQuantity(Math.min(parseInt(e.target.value) || 1, product.stock))}
+                onChange={(e) => {
+                  const val = parseInt(e.target.value) || 1;
+                  setQuantity(Math.min(val, product.stock));
+                }}
                 className="w-20 text-center bg-white/10 border border-white/10 rounded-lg px-3 py-2 text-white font-bold text-lg focus:outline-none focus:border-accent-cyan"
               />
               <button
@@ -64,7 +71,7 @@ export const QuickInvoice = ({ product, exchangeRate, convertUSDtoVES }) => {
                 <Plus size={16} className="text-white" />
               </button>
             </div>
-            <div className="text-xs text-gray-500 mt-2">Máximo disponible: {product.stock}</div>
+            <div className="text-xs text-gray-500 mt-2">Disponible: {product.stock}</div>
           </div>
 
           <div className="bg-white/5 p-4 rounded-xl space-y-3">
@@ -86,7 +93,10 @@ export const QuickInvoice = ({ product, exchangeRate, convertUSDtoVES }) => {
 
           <button
             onClick={handleCobrar}
-            className="w-full py-4 bg-gradient-to-r from-accent-green to-emerald-600 hover:from-emerald-500 hover:to-emerald-700 rounded-xl text-white font-bold text-lg transition-all shadow-lg hover:shadow-glow flex items-center justify-center space-x-2"
+            disabled={quantity > product.stock}
+            className={`w-full py-4 bg-gradient-to-r from-accent-green to-emerald-600 rounded-xl text-white font-bold text-lg transition-all shadow-lg hover:shadow-glow flex items-center justify-center space-x-2 ${
+              quantity > product.stock ? 'opacity-50 cursor-not-allowed' : ''
+            }`}
           >
             <DollarSign size={20} />
             <span>Cobrar Ahora</span>
