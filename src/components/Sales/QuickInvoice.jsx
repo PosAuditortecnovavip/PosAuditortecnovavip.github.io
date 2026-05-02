@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Receipt, DollarSign, Minus, Plus, ShoppingCart } from 'lucide-react';
 import { ReceiptModal } from './Receipt';
-import { useInventory } from '../context/InventoryContext';
+import { useInventory } from '../../context/InventoryContext';
 
 export const QuickInvoice = ({ product, exchangeRate, convertUSDtoVES }) => {
   const [quantity, setQuantity] = useState(1);
