@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Eye, EyeOff, CheckCircle, AlertTriangle } from 'lucide-react';
+import { Eye, EyeOff, CheckCircle, AlertTriangle, Shield } from 'lucide-react';
 
 export const BlindCount = ({ inventory, onComplete }) => {
   const [showCounts, setShowCounts] = useState(false);
@@ -33,63 +33,61 @@ export const BlindCount = ({ inventory, onComplete }) => {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-white flex items-center">
-          {showCounts ? (
-            <EyeOff className="mr-2 text-accent-yellow" size={24} />
-          ) : (
-            <Eye className="mr-2 text-accent-red" size={24} />
-          )}
-          Conteo Ciego de Inventario
-        </h2>
+    <div className="glass-card rounded-2xl p-6 animate-fade-in">
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center space-x-3">
+          <div className="w-10 h-10 rounded-lg bg-accent-red/20 flex items-center justify-center">
+            {showCounts ? <EyeOff className="text-accent-yellow" size={20} /> : <Eye className="text-accent-red" size={20} />}
+          </div>
+          <h2 className="text-xl font-semibold text-white">Conteo Ciego de Inventario</h2>
+        </div>
         <button
           onClick={() => setShowCounts(!showCounts)}
-          className="px-4 py-2 bg-dark-700 rounded-lg text-dark-500 hover:text-white transition-colors"
+          className="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-gray-400 hover:text-white transition-all text-sm"
         >
-          {showCounts ? 'Ocultar' : 'Mostrar'} Stock del Sistema
+          {showCounts ? 'Ocultar sistema' : 'Mostrar sistema'}
         </button>
       </div>
 
-      <div className="bg-dark-800 rounded-xl border border-dark-600 overflow-hidden">
+      <div className="overflow-x-auto">
         <table className="w-full">
-          <thead className="bg-dark-900">
-            <tr>
-              <th className="text-left p-4 text-dark-500">Producto</th>
-              <th className="text-left p-4 text-dark-500">SKU</th>
-              <th className="text-left p-4 text-dark-500">Costo USD</th>
-              {showCounts && <th className="text-left p-4 text-dark-500">Sistema</th>}
-              <th className="text-left p-4 text-accent-cyan">Conteo Físico</th>
-              {showCounts && <th className="text-left p-4 text-dark-500">Diferencia</th>}
+          <thead>
+            <tr className="border-b border-white/10">
+              <th className="text-left p-3 text-gray-500 font-medium">Producto</th>
+              <th className="text-left p-3 text-gray-500 font-medium">SKU</th>
+              <th className="text-left p-3 text-gray-500 font-medium">Costo USD</th>
+              {showCounts && <th className="text-left p-3 text-gray-500 font-medium">Sistema</th>}
+              <th className="text-left p-3 text-accent-cyan font-medium">Conteo Físico</th>
+              {showCounts && <th className="text-left p-3 text-gray-500 font-medium">Diferencia</th>}
             </tr>
           </thead>
           <tbody>
             {inventory.map(product => (
-              <tr key={product.id} className="border-t border-dark-700 hover:bg-dark-700/50">
-                <td className="p-4 text-white">{product.name}</td>
-                <td className="p-4 text-dark-500">{product.sku}</td>
-                <td className="p-4 text-accent-green">${product.costUSD}</td>
+              <tr key={product.id} className="border-b border-white/5 hover:bg-white/5 transition-colors">
+                <td className="p-3 text-white">{product.name}</td>
+                <td className="p-3 text-gray-400 font-mono text-xs">{product.sku}</td>
+                <td className="p-3 text-accent-green">${product.costUSD}</td>
                 {showCounts && (
-                  <td className="p-4">
-                    <span className={`px-2 py-1 rounded text-sm ${
-                      product.stock <= product.minStock ? 'bg-red-900/30 text-red-400' : ''
+                  <td className="p-3">
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      product.stock <= product.minStock ? 'bg-red-900/30 text-red-400' : 'bg-green-900/20 text-green-400'
                     }`}>
                       {product.stock}
                     </span>
                   </td>
                 )}
-                <td className="p-4">
+                <td className="p-3">
                   <input
                     type="number"
                     min="0"
-                    className="w-24 bg-dark-900 border border-dark-600 rounded-lg px-3 py-2 text-white focus:border-accent-blue focus:outline-none"
+                    className="w-24 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white focus:border-accent-blue focus:outline-none font-mono"
                     value={counts[product.id] || ''}
                     onChange={(e) => handleCountChange(product.id, e.target.value)}
                     placeholder="0"
                   />
                 </td>
                 {showCounts && (
-                  <td className="p-4">
+                  <td className="p-3">
                     <span className={`font-bold ${
                       (product.stock - (counts[product.id] || 0)) === 0 
                         ? 'text-accent-green'
@@ -107,10 +105,10 @@ export const BlindCount = ({ inventory, onComplete }) => {
 
       <button
         onClick={calculateDiscrepancies}
-        className="w-full py-3 bg-accent-blue hover:bg-blue-600 rounded-lg text-white font-semibold transition-colors flex items-center justify-center"
+        className="mt-6 w-full py-4 bg-gradient-to-r from-accent-blue to-accent-cyan hover:from-blue-600 hover:to-cyan-600 rounded-xl text-white font-bold text-lg transition-all shadow-lg hover:shadow-glow flex items-center justify-center space-x-2"
       >
-        <CheckCircle className="mr-2" size={20} />
-        Finalizar Conteo y Generar Reporte
+        <CheckCircle size={20} />
+        <span>Finalizar Conteo y Generar Reporte</span>
       </button>
     </div>
   );
