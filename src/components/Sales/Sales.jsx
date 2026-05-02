@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { ProductSelector } from './ProductSelector';
 import { QuickInvoice } from './QuickInvoice';
-import { useInventory } from '../context/InventoryContext';
+import { useInventory } from '../../context/InventoryContext';
 
 export const Sales = ({ exchangeRate, convertUSDtoVES }) => {
   const { inventory } = useInventory();
