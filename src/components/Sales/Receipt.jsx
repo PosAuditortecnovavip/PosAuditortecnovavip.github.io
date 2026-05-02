@@ -1,6 +1,6 @@
-import { Printer, X, Download } from 'lucide-react';
+import { Printer, X } from 'lucide-react';
 
-export const Receipt = ({ product, quantity, totalVES, exchangeRate, onClose }) => {
+export const ReceiptModal = ({ product, quantity, totalVES, exchangeRate, onClose }) => {
   const printReceipt = () => {
     window.print();
   };
