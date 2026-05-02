@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { BlindCount } from './BlindCount';
 import { DiscrepancyReport } from './DiscrepancyReport';
 import { StockTable } from './StockTable';
-import { useInventory } from '../context/InventoryContext';
+import { useInventory } from '../../context/InventoryContext';
 
 export const Audit = ({ convertUSDtoVES }) => {
   const { inventory } = useInventory();
