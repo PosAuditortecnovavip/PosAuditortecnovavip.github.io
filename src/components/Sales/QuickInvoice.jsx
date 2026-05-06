@@ -1,7 +1,10 @@
 import { useState } from 'react';
+import { motion } from 'framer-motion';
 import { Receipt, DollarSign, Minus, Plus, ShoppingCart } from 'lucide-react';
 import { ReceiptModal } from './Receipt';
 import { useInventory } from '../../context/InventoryContext';
+
+const glassCard = "bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl shadow-glass-sm";
 
 export const QuickInvoice = ({ product, exchangeRate, convertUSDtoVES }) => {
   const [quantity, setQuantity] = useState(1);
@@ -10,11 +13,15 @@ export const QuickInvoice = ({ product, exchangeRate, convertUSDtoVES }) => {
 
   if (!product) {
     return (
-      <div className="glass-card rounded-2xl p-6 flex flex-col items-center justify-center min-h-[400px] text-center">
-        <ShoppingCart size={48} className="text-gray-600 mb-4" />
-        <p className="text-gray-500 text-lg">Seleccione un producto</p>
-        <p className="text-gray-600 text-sm">para generar la factura</p>
-      </div>
+      <motion.div
+        initial={{ opacity: 0, x: 10 }}
+        animate={{ opacity: 1, x: 0 }}
+        className={glassCard + " p-6 flex flex-col items-center justify-center min-h-[400px] text-center"}
+      >
+        <ShoppingCart size={48} className="text-neutral-600 mb-4" />
+        <p className="text-neutral-400 text-lg">Seleccione un producto</p>
+        <p className="text-neutral-500 text-sm">para generar la factura</p>
+      </motion.div>
     );
   }
 
@@ -29,23 +36,27 @@ export const QuickInvoice = ({ product, exchangeRate, convertUSDtoVES }) => {
 
   return (
     <>
-      <div className="glass-card rounded-2xl p-6 animate-fade-in">
+      <motion.div
+        initial={{ opacity: 0, x: 10 }}
+        animate={{ opacity: 1, x: 0 }}
+        className={glassCard + " p-6"}
+      >
         <div className="flex items-center space-x-3 mb-6">
-          <div className="w-10 h-10 rounded-lg bg-cyan-500/20 flex items-center justify-center">
-            <Receipt className="text-cyan-400" size={20} />
+          <div className="w-10 h-10 rounded-xl bg-brand-cyan/20 flex items-center justify-center">
+            <Receipt className="text-brand-cyan" size={20} />
           </div>
           <h2 className="text-xl font-semibold text-white">Factura Rápida</h2>
         </div>
 
         <div className="space-y-4">
           <div className="bg-white/5 p-4 rounded-xl">
-            <div className="text-xs text-gray-500 uppercase tracking-wider mb-1">Producto</div>
+            <div className="text-xs text-neutral-400 uppercase tracking-wider mb-1">Producto</div>
             <div className="text-white font-semibold">{product.name}</div>
-            <div className="text-sm text-gray-500 mt-1">SKU: {product.sku}</div>
+            <div className="text-sm text-neutral-500 mt-1">SKU: {product.sku}</div>
           </div>
 
           <div className="bg-white/5 p-4 rounded-xl">
-            <div className="text-xs text-gray-500 uppercase tracking-wider mb-3">Cantidad</div>
+            <div className="text-xs text-neutral-400 uppercase tracking-wider mb-3">Cantidad</div>
             <div className="flex items-center space-x-3">
               <button
                 onClick={() => setQuantity(Math.max(1, quantity - 1))}
@@ -58,11 +69,8 @@ export const QuickInvoice = ({ product, exchangeRate, convertUSDtoVES }) => {
                 min="1"
                 max={product.stock}
                 value={quantity}
-                onChange={(e) => {
-                  const val = parseInt(e.target.value) || 1;
-                  setQuantity(Math.min(val, product.stock));
-                }}
-                className="w-20 text-center bg-white/10 border border-white/10 rounded-lg px-3 py-2 text-white font-bold text-lg focus:outline-none focus:border-cyan-400"
+                onChange={(e) => setQuantity(Math.min(parseInt(e.target.value) || 1, product.stock))}
+                className="w-20 text-center bg-white/10 border border-white/10 rounded-lg px-3 py-2 text-white font-bold text-lg focus:outline-none focus:border-brand-cyan"
               />
               <button
                 onClick={() => setQuantity(Math.min(product.stock, quantity + 1))}
@@ -71,22 +79,22 @@ export const QuickInvoice = ({ product, exchangeRate, convertUSDtoVES }) => {
                 <Plus size={16} className="text-white" />
               </button>
             </div>
-            <div className="text-xs text-gray-500 mt-2">Disponible: {product.stock}</div>
+            <div className="text-xs text-neutral-500 mt-2">Disponible: {product.stock}</div>
           </div>
 
           <div className="bg-white/5 p-4 rounded-xl space-y-3">
             <div className="flex justify-between text-sm">
-              <span className="text-gray-500">Precio unitario</span>
+              <span className="text-neutral-400">Precio unitario</span>
               <span className="text-white">${product.costUSD}</span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-gray-500">Subtotal USD</span>
+              <span className="text-neutral-400">Subtotal USD</span>
               <span className="text-white">${totalUSD.toFixed(2)}</span>
             </div>
             <div className="border-t border-white/10 pt-3 mt-2">
               <div className="flex justify-between text-lg font-bold">
-                <span className="text-gray-400">Total a pagar</span>
-                <span className="text-green-400 text-2xl">{totalVES}</span>
+                <span className="text-neutral-400">Total a pagar</span>
+                <span className="text-brand-green text-2xl">{totalVES}</span>
               </div>
             </div>
           </div>
@@ -94,7 +102,7 @@ export const QuickInvoice = ({ product, exchangeRate, convertUSDtoVES }) => {
           <button
             onClick={handleCobrar}
             disabled={quantity > product.stock}
-            className={`w-full py-4 bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl text-white font-bold text-lg transition-all shadow-lg hover:shadow-glow flex items-center justify-center space-x-2 ${
+            className={`w-full py-4 bg-gradient-to-r from-brand-green to-emerald-600 rounded-xl text-white font-bold text-lg transition-all shadow-lg hover:shadow-card-glow flex items-center justify-center space-x-2 ${
               quantity > product.stock ? 'opacity-50 cursor-not-allowed' : ''
             }`}
           >
@@ -102,7 +110,7 @@ export const QuickInvoice = ({ product, exchangeRate, convertUSDtoVES }) => {
             <span>Cobrar Ahora</span>
           </button>
         </div>
-      </div>
+      </motion.div>
 
       {showReceipt && (
         <ReceiptModal
