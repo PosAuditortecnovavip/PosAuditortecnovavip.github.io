@@ -31,7 +31,7 @@ export default function Reports() {
   const allSales = useMemo(() => getAllSales(), []);
   const { products, movements } = useInventory();
   const { history: auditHistory } = useAudit();
-  const { transactions, balance } = useFinance();
+  const { transactions, balance, totalSalesUSD } = useFinance();
 
   const handleDownload = () => {
     switch (activeTab) {
@@ -45,7 +45,7 @@ export default function Reports() {
         generateAuditReport(auditHistory, exchange);
         break;
       case 'finance':
-        generateFinanceReport(transactions, balance, exchange);
+        generateFinanceReport(transactions, balance, exchange, totalSalesUSD);
         break;
     }
   };
