@@ -1,0 +1,157 @@
+@import "tailwindcss";
+
+@theme {
+  --color-bg-deep: #0a0f1e;
+  --color-surface-dark: #0f172a;
+  --color-surface: #1a2332;
+  --color-surface-light: #243044;
+  --color-primary: #06b6d4;
+  --color-primary-dark: #0891b2;
+  --color-accent: #8b5cf6;
+  --color-accent-light: #a78bfa;
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-danger: #ef4444;
+  --color-text-primary: #f1f5f9;
+  --color-text-secondary: #cbd5e1;
+  --color-text-muted: #64748b;
+  --color-border: #334155;
+  --color-glow-cyan: rgba(6, 182, 212, 0.4);
+  --color-glow-purple: rgba(139, 92, 246, 0.3);
+}
+
+/* Tema claro */
+.light {
+  --color-bg-deep: #f8fafc;
+  --color-surface-dark: #f1f5f9;
+  --color-surface: #ffffff;
+  --color-surface-light: #e2e8f0;
+  --color-text-primary: #0f172a;
+  --color-text-secondary: #475569;
+  --color-text-muted: #64748b;
+  --color-border: #cbd5e1;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  background-color: var(--color-bg-deep);
+  color: var(--color-text-primary);
+  min-height: 100vh;
+  letter-spacing: -0.01em;
+  touch-action: manipulation;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Vidrio esmerilado */
+.glass-card {
+  background: rgba(30, 41, 59, 0.6);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(6, 182, 212, 0.2);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  transition: all 0.3s ease;
+}
+
+.light .glass-card {
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(203, 213, 225, 0.8);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+}
+
+.glass-card:hover {
+  border-color: rgba(6, 182, 212, 0.4);
+}
+
+.glass-panel {
+  background: rgba(15, 23, 42, 0.5);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(51, 65, 85, 0.3);
+  border-radius: 12px;
+}
+
+.bg-aurora {
+  background:
+    radial-gradient(ellipse at 20% 50%, rgba(6, 182, 212, 0.08) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 20%, rgba(139, 92, 246, 0.08) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 80%, rgba(217, 70, 239, 0.04) 0%, transparent 50%),
+    var(--color-bg-deep);
+}
+
+.light .bg-aurora {
+  background: #f8fafc;
+}
+
+/* Animaciones */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.5s ease forwards;
+}
+
+/* Scrollbar elegante */
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 2px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #475569;
+}
+
+/* ==================== MEJORAS TÁCTILES PARA MÓVILES ==================== */
+@media (max-width: 640px) {
+  body {
+    font-size: 16px;
+  }
+
+  /* Evita zoom automático en iOS */
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+
+  /* Altura mínima táctil */
+  input,
+  select,
+  textarea,
+  button {
+    min-height: 44px;
+  }
+
+  /* Ajuste para botones pequeños que no quieren min-height */
+  .btn-icon {
+    min-height: 36px;
+    min-width: 36px;
+  }
+
+  /* Espaciado más generoso en tarjetas */
+  .glass-card {
+    padding: 1rem !important;
+    border-radius: 12px;
+  }
+}
