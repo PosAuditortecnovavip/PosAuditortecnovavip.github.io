@@ -1,41 +1,75 @@
+import { db } from '../firebase';
+import {
+  collection,
+  getDocs,
+  doc,
+  getDoc,
+  updateDoc,
+  addDoc,
+  deleteDoc,
+} from 'firebase/firestore';
 import { Product } from '../types';
-import { defaultProducts } from '../data/products';
 
-const STORAGE_KEY = 'audity_products';
+const COL = 'products';
 
-const initializeProducts = (): Product[] => {
-  const stored = localStorage.getItem(STORAGE_KEY);
-  if (stored) {
-    try {
-      return JSON.parse(stored);
-    } catch {
-      // Si hay corrupción, reinicia
-    }
-  }
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(defaultProducts));
-  return defaultProducts;
+export const getProducts = async (): Promise<Product[]> => {
+  const snapshot = await getDocs(collection(db, COL));
+  return snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as Product));
 };
 
-export const getProducts = (): Product[] => {
-  return initializeProducts();
+export const getProductById = async (id: string): Promise<Product | undefined> => {
+  const snap = await getDoc(doc(db, COL, id));
+  return snap.exists() ? ({ id: snap.id, ...snap.data() } as Product) : undefined;
 };
 
-export const getProductById = (id: string): Product | undefined => {
-  return getProducts().find(p => p.id === id);
+export const updateProductStock = async (id: string, newStock: number): Promise<Product | null> => {
+  const docRef = doc(db, COL, id);
+  await updateDoc(docRef, { stock: newStock, updatedAt: new Date().toISOString() });
+  const updated = await getProductById(id);
+  return updated || null;
 };
 
-export const updateProductStock = (id: string, newStock: number): Product | null => {
-  const products = getProducts();
-  const index = products.findIndex(p => p.id === id);
-  if (index === -1) return null;
-  products[index].stock = newStock;
-  products[index].updatedAt = new Date().toISOString();
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(products));
-  return products[index];
-};
-
-export const reduceStock = (id: string, quantity: number): Product | null => {
-  const product = getProductById(id);
+export const reduceStock = async (id: string, quantity: number): Promise<Product | null> => {
+  const product = await getProductById(id);
   if (!product || product.stock < quantity) return null;
-  return updateProductStock(id, product.stock - quantity);
+  return await updateProductStock(id, product.stock - quantity);
+};
+
+export const addProduct = async (
+  product: Omit<Product, 'id' | 'createdAt' | 'updatedAt'>
+): Promise<Product> => {
+  const docRef = await addDoc(collection(db, COL), {
+    ...product,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  });
+  return {
+    ...product,
+    id: docRef.id,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+};
+
+export const updateProduct = async (
+  id: string,
+  product: Partial<Product>
+): Promise<Product | null> => {
+  const docRef = doc(db, COL, id);
+  await updateDoc(docRef, {
+    ...product,
+    updatedAt: new Date().toISOString(),
+  });
+  const updated = await getProductById(id);
+  return updated || null;
+};
+
+export const deleteProduct = async (id: string): Promise<boolean> => {
+  try {
+    await deleteDoc(doc(db, COL, id));
+    return true;
+  } catch (error) {
+    console.error('Error al eliminar producto:', error);
+    return false;
+  }
 };

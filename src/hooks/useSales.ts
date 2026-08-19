@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Product, SaleItemIVA, Sale } from '../types';
 import { getProducts } from '../services/productService';
 import { recordSale } from '../services/salesService';
@@ -10,17 +10,35 @@ export interface CartItem extends SaleItemIVA {
 }
 
 export const useSales = () => {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loadingProducts, setLoadingProducts] = useState(true);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [paymentMethod, setPaymentMethod] = useState<Sale['paymentMethod']>('cash_usd');
   const [error, setError] = useState<string | null>(null);
   const [customerId, setCustomerId] = useState<string>('');
   const [customerName, setCustomerName] = useState<string>('');
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
   const { user } = useAuth();
   const { convertToBS, rate } = useExchangeRate();
 
+  useEffect(() => {
+    getProducts()
+      .then(setProducts)
+      .catch(console.error)
+      .finally(() => setLoadingProducts(false));
+  }, []);
+
+  useEffect(() => {
+    const handleInventoryUpdate = () => {
+      getProducts().then(setProducts).catch(console.error);
+    };
+    window.addEventListener('inventory-updated', handleInventoryUpdate);
+    return () => window.removeEventListener('inventory-updated', handleInventoryUpdate);
+  }, []);
+
   const showError = (msg: string) => {
     setError(msg);
-    setTimeout(() => setError(null), 3000);
+    setTimeout(() => setError(null), 4000);
   };
 
   const addToCart = useCallback((product: Product, quantity: number = 1) => {
@@ -31,7 +49,7 @@ export const useSales = () => {
       const newQty = currentQty + quantity;
 
       if (newQty > product.stock) {
-        showError(`Stock insuficiente: solo hay ${product.stock} unidades de "${product.name}".`);
+        showError(`Solo hay ${product.stock} unidades de "${product.name}".`);
         return prev;
       }
 
@@ -41,27 +59,14 @@ export const useSales = () => {
       if (existing) {
         return prev.map(item =>
           item.productId === product.id
-            ? {
-                ...item,
-                quantity: newQty,
-                subtotalUSD: newQty * item.priceUSD,
-                baseUSD: baseUnitario,
-                ivaUSD: ivaUnitario,
-                stock: product.stock,
-              }
+            ? { ...item, quantity: newQty, subtotalUSD: newQty * item.priceUSD, baseUSD: baseUnitario, ivaUSD: ivaUnitario, stock: product.stock }
             : item
         );
       }
-
       return [...prev, {
-        productId: product.id,
-        productName: product.name,
-        quantity,
-        priceUSD: product.priceUSD,
-        baseUSD: baseUnitario,
-        ivaUSD: ivaUnitario,
-        subtotalUSD: product.priceUSD * quantity,
-        stock: product.stock,
+        productId: product.id, productName: product.name, quantity,
+        priceUSD: product.priceUSD, baseUSD: baseUnitario, ivaUSD: ivaUnitario,
+        subtotalUSD: product.priceUSD * quantity, stock: product.stock,
       }];
     });
   }, []);
@@ -76,18 +81,13 @@ export const useSales = () => {
       removeFromCart(productId);
       return;
     }
-
     setCart(prev => prev.map(item => {
       if (item.productId !== productId) return item;
       if (quantity > item.stock) {
-        showError(`Stock máximo disponible: ${item.stock} unidades de "${item.productName}".`);
+        showError(`Stock máximo: ${item.stock} de "${item.productName}".`);
         return item;
       }
-      return {
-        ...item,
-        quantity,
-        subtotalUSD: quantity * item.priceUSD,
-      };
+      return { ...item, quantity, subtotalUSD: quantity * item.priceUSD };
     }));
   }, [removeFromCart]);
 
@@ -104,17 +104,23 @@ export const useSales = () => {
     setCustomerName(name);
   };
 
-  const checkout = useCallback((): Sale | null => {
-    if (cart.length === 0 || !user || !rate) return null;
+  const checkout = useCallback(async (): Promise<Sale | null> => {
+    if (cart.length === 0 || !user || !rate) {
+      console.warn('checkout abortado: carrito vacío o falta user/rate');
+      return null;
+    }
+
+    setCheckoutLoading(true);
+    setError(null);
 
     const items = cart.map(({ productId, productName, quantity, priceUSD, baseUSD, ivaUSD, subtotalUSD }) => ({
       productId, productName, quantity, priceUSD, baseUSD, ivaUSD, subtotalUSD,
     }));
-
     const subtotalBaseUSD = cart.reduce((sum, item) => sum + item.baseUSD * item.quantity, 0);
     const subtotalIVAUSD = cart.reduce((sum, item) => sum + item.ivaUSD * item.quantity, 0);
 
-    const sale = recordSale({
+    // Construir objeto de venta sin campos undefined
+    const saleData: Omit<Sale, 'id' | 'createdAt'> = {
       items,
       subtotalBaseUSD,
       subtotalIVAUSD,
@@ -122,22 +128,43 @@ export const useSales = () => {
       totalBS,
       exchangeRate: rate.rate,
       paymentMethod,
-      sellerId: user.role + '-001',
+      sellerId: user.uid,
       sellerName: user.name,
-      customerId: customerId || undefined,
-      customerName: customerName || undefined,
-    });
+    };
 
-    if (sale) {
-      clearCart();
-      setCustomerId('');
-      setCustomerName('');
-      window.dispatchEvent(new Event('inventory-updated'));
+    if (customerId) {
+      saleData.customerId = customerId;
+      saleData.customerName = customerName;
     }
-    return sale;
-  }, [cart, user, rate, totalUSD, totalBS, paymentMethod, clearCart, customerId, customerName]);
+
+    try {
+      console.log('🚀 Ejecutando recordSale...');
+      const sale = await recordSale(saleData);
+
+      if (sale) {
+        console.log('✅ Venta registrada:', sale.id);
+        clearCart();
+        setCustomerId('');
+        setCustomerName('');
+        window.dispatchEvent(new Event('inventory-updated'));
+        return sale;
+      } else {
+        console.error('❌ recordSale devolvió null (posible falta de stock)');
+        showError('No se pudo completar la venta. Verifique el stock.');
+        return null;
+      }
+    } catch (err) {
+      console.error('❌ Error al registrar venta:', err);
+      showError('Error de conexión al guardar la venta. Intente de nuevo.');
+      return null;
+    } finally {
+      setCheckoutLoading(false);
+    }
+  }, [cart, user, rate, totalUSD, totalBS, paymentMethod, customerId, customerName, clearCart]);
 
   return {
+    products,
+    loadingProducts,
     cart,
     addToCart,
     removeFromCart,
@@ -146,6 +173,7 @@ export const useSales = () => {
     totalUSD,
     totalBS,
     checkout,
+    checkoutLoading,
     paymentMethod,
     setPaymentMethod,
     error,

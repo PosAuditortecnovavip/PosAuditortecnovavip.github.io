@@ -1,36 +1,49 @@
-import { useState, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Transaction } from '../types';
 import { addTransaction, getAllTransactions } from '../services/financeService';
 import { getAllSales } from '../services/salesService';
 import { useAuth } from '../context/AuthContext';
 
 export const useFinance = () => {
-  const [transactions, setTransactions] = useState<Transaction[]>(getAllTransactions);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [loading, setLoading] = useState(true);
   const { user } = useAuth();
 
-  const refresh = useCallback(() => {
-    setTransactions(getAllTransactions());
+  const refresh = useCallback(async () => {
+    const data = await getAllTransactions();
+    setTransactions(data);
   }, []);
 
-  // Solo permite registrar egresos
-  const addExpense = useCallback((description: string, amountUSD: number, category: string) => {
+  useEffect(() => {
+    refresh().finally(() => setLoading(false));
+  }, [refresh]);
+
+  const addExpense = useCallback(async (description: string, amountUSD: number, category: string) => {
     if (!user) return null;
-    const transaction = addTransaction({
+    await addTransaction({
       description,
       amountUSD,
-      type: 'expense',  // siempre egreso
+      type: 'expense',
       category,
       userId: user.role + '-001',
       userName: user.name,
     });
-    refresh();
-    return transaction;
+    await refresh();
   }, [user, refresh]);
 
-  // Los ingresos se obtienen de las ventas
-  const totalSalesUSD = getAllSales().reduce((sum, sale) => sum + sale.totalUSD, 0);
-  const totalExpensesUSD = transactions.reduce((sum, t) => sum + t.amountUSD, 0);
-  const balance = totalSalesUSD - totalExpensesUSD;
+  const [balance, setBalance] = useState(0);
+  const [totalSalesUSD, setTotalSalesUSD] = useState(0);
 
-  return { transactions, addExpense, balance, refresh, totalSalesUSD, totalExpensesUSD };
+  useEffect(() => {
+    const calc = async () => {
+      const sales = await getAllSales();
+      const total = sales.reduce((s, sale) => s + sale.totalUSD, 0);
+      setTotalSalesUSD(total);
+      const expenses = transactions.reduce((s, t) => s + t.amountUSD, 0);
+      setBalance(total - expenses);
+    };
+    calc();
+  }, [transactions]);
+
+  return { transactions, addExpense, balance, refresh, loading, totalSalesUSD };
 };

@@ -9,18 +9,18 @@ interface Props {
 export default function AuditHistory({ history }: Props) {
   return (
     <div className="glass-card p-4 space-y-3 max-h-[600px] overflow-y-auto">
-      <h3 className="font-bold text-sm">Historial de Auditorías</h3>
+      <h3 className="font-bold text-base">Historial de Auditorías</h3>
       {history.length === 0 ? (
-        <p className="text-text-muted text-xs">No se han realizado auditorías.</p>
+        <p className="text-text-muted text-sm">No se han realizado auditorías.</p>
       ) : (
         history.slice(0, 40).map(record => (
-          <div key={record.id} className="bg-surface/30 rounded-lg p-3 text-xs space-y-1">
+          <div key={record.id} className="bg-surface/30 rounded-lg p-4 text-sm space-y-2">
             <div className="flex justify-between items-start">
               <span className="font-medium truncate">{record.productName}</span>
               {record.difference === 0 ? (
-                <CheckCircle2 size={14} className="text-success shrink-0" />
+                <CheckCircle2 size={20} className="text-success shrink-0" />
               ) : (
-                <AlertTriangle size={14} className="text-warning shrink-0" />
+                <AlertTriangle size={20} className="text-warning shrink-0" />
               )}
             </div>
             <div className="flex justify-between text-text-muted">
@@ -31,16 +31,16 @@ export default function AuditHistory({ history }: Props) {
               </span>
             </div>
             {record.reason && (
-              <p className="text-text-muted italic text-[11px] leading-tight">
+              <p className="text-text-muted italic text-xs leading-tight">
                 "{record.reason}"
               </p>
             )}
-            <div className="flex justify-between items-center text-text-muted text-[10px] pt-1 border-t border-border/30">
+            <div className="flex justify-between items-center text-text-muted text-xs pt-2 border-t border-border/30">
               <span className="flex items-center gap-1">
-                <User size={10} /> {record.auditorName}
+                <User size={14} /> {record.auditorName}
               </span>
               <span className="flex items-center gap-1">
-                <Clock size={10} />
+                <Clock size={14} />
                 {new Date(record.createdAt).toLocaleString('es-VE', { dateStyle: 'short', timeStyle: 'short' })}
               </span>
             </div>

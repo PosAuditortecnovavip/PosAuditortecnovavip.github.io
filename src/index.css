@@ -20,11 +20,23 @@
   --color-glow-purple: rgba(139, 92, 246, 0.3);
 }
 
+/* Tema claro */
+.light {
+  --color-bg-deep: #f8fafc;
+  --color-surface-dark: #f1f5f9;
+  --color-surface: #ffffff;
+  --color-surface-light: #e2e8f0;
+  --color-text-primary: #0f172a;
+  --color-text-secondary: #475569;
+  --color-text-muted: #64748b;
+  --color-border: #cbd5e1;
+}
+
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  -webkit-tap-highlight-color: transparent; /* Quita el highlight azul en móviles */
+  -webkit-tap-highlight-color: transparent;
 }
 
 body {
@@ -33,13 +45,13 @@ body {
   color: var(--color-text-primary);
   min-height: 100vh;
   letter-spacing: -0.01em;
-  touch-action: manipulation; /* Mejora respuesta táctil */
+  touch-action: manipulation;
   -webkit-font-smoothing: antialiased;
 }
 
-/* Vidrio esmerilado moderno */
+/* Vidrio esmerilado */
 .glass-card {
-  background: rgba(15, 23, 42, 0.7);
+  background: rgba(30, 41, 59, 0.6);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid rgba(6, 182, 212, 0.2);
@@ -48,9 +60,14 @@ body {
   transition: all 0.3s ease;
 }
 
+.light .glass-card {
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(203, 213, 225, 0.8);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+}
+
 .glass-card:hover {
   border-color: rgba(6, 182, 212, 0.4);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 .glass-panel {
@@ -69,6 +86,11 @@ body {
     var(--color-bg-deep);
 }
 
+.light .bg-aurora {
+  background: #f8fafc;
+}
+
+/* Animaciones */
 @keyframes fadeInUp {
   from {
     opacity: 0;
@@ -84,6 +106,7 @@ body {
   animation: fadeInUp 0.5s ease forwards;
 }
 
+/* Scrollbar elegante */
 ::-webkit-scrollbar {
   width: 4px;
   height: 4px;
@@ -99,12 +122,36 @@ body {
   background: #475569;
 }
 
-/* Mejoras para móviles */
+/* ==================== MEJORAS TÁCTILES PARA MÓVILES ==================== */
 @media (max-width: 640px) {
-  .glass-card {
-    border-radius: 12px;
-  }
   body {
-    font-size: 15px;
+    font-size: 16px;
+  }
+
+  /* Evita zoom automático en iOS */
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+
+  /* Altura mínima táctil */
+  input,
+  select,
+  textarea,
+  button {
+    min-height: 44px;
+  }
+
+  /* Ajuste para botones pequeños que no quieren min-height */
+  .btn-icon {
+    min-height: 36px;
+    min-width: 36px;
+  }
+
+  /* Espaciado más generoso en tarjetas */
+  .glass-card {
+    padding: 1rem !important;
+    border-radius: 12px;
   }
 }

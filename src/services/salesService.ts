@@ -1,40 +1,34 @@
-import { Sale, SaleIVA } from '../types';
+import { db } from '../firebase';
+import { collection, getDocs, addDoc, query, where, orderBy } from 'firebase/firestore';
+import { Sale } from '../types';
 import { reduceStock } from './productService';
 
-const STORAGE_KEY = 'audity_sales';
+const COL = 'sales';
 
-const getSales = (): Sale[] => {
-  const stored = localStorage.getItem(STORAGE_KEY);
-  return stored ? JSON.parse(stored) : [];
-};
-
-const saveSales = (sales: Sale[]): void => {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(sales));
-};
-
-export const recordSale = (sale: Omit<Sale, 'id' | 'createdAt'>): Sale | null => {
+export const recordSale = async (sale: Omit<Sale, 'id' | 'createdAt'>): Promise<Sale | null> => {
+  // Descontar inventario
   for (const item of sale.items) {
-    const result = reduceStock(item.productId, item.quantity);
+    const result = await reduceStock(item.productId, item.quantity);
     if (!result) return null;
   }
 
-  const newSale: Sale = {
+  const docRef = await addDoc(collection(db, COL), {
     ...sale,
-    id: `sale-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`,
     createdAt: new Date().toISOString(),
-  };
+  });
 
-  const sales = getSales();
-  sales.push(newSale);
-  saveSales(sales);
-  return newSale;
+  return { ...sale, id: docRef.id, createdAt: new Date().toISOString() };
 };
 
-export const getTodaySales = (): Sale[] => {
+export const getTodaySales = async (): Promise<Sale[]> => {
   const today = new Date().toISOString().split('T')[0];
-  return getSales().filter(s => s.createdAt.startsWith(today));
+  const q = query(collection(db, COL), where('createdAt', '>=', today), orderBy('createdAt', 'desc'));
+  const snapshot = await getDocs(q);
+  return snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Sale));
 };
 
-export const getAllSales = (): Sale[] => {
-  return getSales();
+export const getAllSales = async (): Promise<Sale[]> => {
+  const q = query(collection(db, COL), orderBy('createdAt', 'desc'));
+  const snapshot = await getDocs(q);
+  return snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Sale));
 };

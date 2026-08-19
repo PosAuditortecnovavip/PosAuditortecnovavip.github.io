@@ -9,12 +9,12 @@ const COLORS = ['#06b6d4', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444', '#ec4899'
 
 interface Props {
   products: Product[];
-  sales: Sale[];                // ventas del día (o todas, según se pase)
-  transactions: Transaction[];  // egresos
+  sales: Sale[];
+  transactions: Transaction[];
 }
 
 export default function DashboardCharts({ products, sales, transactions }: Props) {
-  // Ventas por categoría (basado en los items vendidos)
+  // Ventas por categoría (usando las ventas del día)
   const salesByCategory = useMemo(() => {
     const catMap: Record<string, number> = {};
     sales.forEach(sale => {
@@ -48,9 +48,11 @@ export default function DashboardCharts({ products, sales, transactions }: Props
 
     // Sumar egresos por día
     transactions.forEach(t => {
-      const day = t.createdAt.split('T')[0];
-      if (days[day] !== undefined) {
-        days[day].expense += t.amountUSD;
+      if (t.type === 'expense') {
+        const day = t.createdAt.split('T')[0];
+        if (days[day] !== undefined) {
+          days[day].expense += t.amountUSD;
+        }
       }
     });
 

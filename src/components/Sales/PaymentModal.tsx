@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, DollarSign, Banknote, CreditCard, Smartphone } from 'lucide-react';
+import { X, DollarSign, Banknote, CreditCard, Smartphone, RefreshCw } from 'lucide-react';
 import { Sale, Customer } from '../../types';
 import { useExchangeRate } from '../../context/ExchangeRateContext';
 import CustomerSelector from '../Customers/CustomerSelector';
@@ -14,6 +14,7 @@ interface Props {
   customers: Customer[];
   selectedCustomerId: string;
   onCustomerChange: (id: string, name: string) => void;
+  isLoading?: boolean; // <-- AGREGADO
 }
 
 const methods: { key: Sale['paymentMethod']; label: string; icon: typeof DollarSign }[] = [
@@ -27,6 +28,7 @@ const methods: { key: Sale['paymentMethod']; label: string; icon: typeof DollarS
 export default function PaymentModal({
   totalUSD, totalBS, paymentMethod, onPaymentMethodChange,
   onConfirm, onCancel, customers, selectedCustomerId, onCustomerChange,
+  isLoading = false, // <-- AGREGADO con valor por defecto
 }: Props) {
   const { formatUSD, formatBS } = useExchangeRate();
 
@@ -92,10 +94,11 @@ export default function PaymentModal({
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={onConfirm}
-              disabled={totalUSD === 0}
-              className="flex-1 py-2.5 bg-gradient-to-r from-primary to-accent rounded-xl text-sm font-bold text-white disabled:opacity-50 transition cursor-pointer"
+              disabled={totalUSD === 0 || isLoading}
+              className="flex-1 py-2.5 bg-gradient-to-r from-primary to-accent rounded-xl text-sm font-bold text-white disabled:opacity-50 transition cursor-pointer flex items-center justify-center gap-2"
             >
-              Confirmar Venta
+              {isLoading && <RefreshCw size={16} className="animate-spin" />}
+              {isLoading ? 'Procesando...' : 'Confirmar Venta'}
             </motion.button>
           </div>
         </motion.div>

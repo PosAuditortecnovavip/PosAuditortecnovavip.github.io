@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { AuditRecord, Product } from '../types';
 import { getProducts } from '../services/productService';
 import { recordAudit, getAuditHistory } from '../services/auditService';
@@ -6,11 +6,29 @@ import { recordMovement } from '../services/inventoryMovementService';
 import { useAuth } from '../context/AuthContext';
 
 export const useAudit = () => {
-  const [products] = useState<Product[]>(getProducts);
-  const [history, setHistory] = useState<AuditRecord[]>(getAuditHistory);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [history, setHistory] = useState<AuditRecord[]>([]);
+  const [loading, setLoading] = useState(true);
   const { user } = useAuth();
 
-  const performAudit = useCallback((
+  const loadData = useCallback(async () => {
+    try {
+      const [prods, audits] = await Promise.all([
+        getProducts(),
+        getAuditHistory(),
+      ]);
+      setProducts(prods);
+      setHistory(audits);
+    } catch (error) {
+      console.error('Error cargando auditoría:', error);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadData().finally(() => setLoading(false));
+  }, [loadData]);
+
+  const performAudit = useCallback(async (
     productId: string,
     physicalStock: number,
     reason: string,
@@ -23,37 +41,40 @@ export const useAudit = () => {
 
     const difference = physicalStock - product.stock;
 
-    // Registrar auditoría
-    const audit = recordAudit({
-      productId,
-      productName: product.name,
-      systemStock: product.stock,
-      physicalStock,
-      difference,
-      reason,
-      auditorId: user.role + '-001',
-      auditorName: user.name,
-    });
-
-    // Aplicar ajuste si se solicita y hay diferencia
-    if (applyAdjustment && difference !== 0) {
-      recordMovement({
+    try {
+      const audit = await recordAudit({
         productId,
         productName: product.name,
-        type: 'adjustment',
-        quantity: Math.abs(difference),
-        reason: `Auditoría: ${reason || 'Ajuste por diferencia'}`,
-        userId: user.role + '-001',
-        userName: user.name,
+        systemStock: product.stock,
+        physicalStock,
+        difference,
+        reason,
+        auditorId: user.uid,
+        auditorName: user.name,
       });
-      // Notificar actualización de inventario
-      window.dispatchEvent(new Event('inventory-updated'));
-    }
 
-    // Refrescar historial
-    setHistory(getAuditHistory());
-    return audit;
+      if (applyAdjustment && difference !== 0) {
+        await recordMovement({
+          productId,
+          productName: product.name,
+          type: 'adjustment',
+          quantity: Math.abs(difference),
+          reason: `Auditoría: ${reason || 'Ajuste por diferencia'}`,
+          userId: user.uid,
+          userName: user.name,
+        });
+        window.dispatchEvent(new Event('inventory-updated'));
+      }
+
+      // Refrescar historial
+      const newHistory = await getAuditHistory();
+      setHistory(newHistory);
+      return audit;
+    } catch (error) {
+      console.error('Error en auditoría:', error);
+      return null;
+    }
   }, [user, products]);
 
-  return { products, history, performAudit, refreshHistory: () => setHistory(getAuditHistory()) };
+  return { products, history, performAudit, refreshHistory: loadData, loading };
 };

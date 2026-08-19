@@ -40,7 +40,7 @@ const storeRate = (rate: ExchangeRate): void => {
 
 const fetchFromRafnixg = async (): Promise<number> => {
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 8000);
+  const timeoutId = setTimeout(() => controller.abort(), 12000);
   try {
     const res = await fetch('https://bcv-api.rafnixg.dev/rates/', { signal: controller.signal });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -61,7 +61,11 @@ export const fetchExchangeRate = async (): Promise<ExchangeRate> => {
     storeRate(result);
     return result;
   } catch (e) {
-    console.warn('Error obteniendo tasa online:', e);
+    if (e instanceof DOMException && e.name === 'AbortError') {
+      console.info('Tasa BCV: solicitud abortada por timeout. Usando respaldo.');
+    } else {
+      console.warn('Error obteniendo tasa online:', e);
+    }
   }
 
   const stored = getStoredRate();
@@ -86,7 +90,7 @@ export const setupAutoUpdate = (callback: (rate: ExchangeRate) => void): (() => 
     });
   };
 
-  update();
+  update(); // primer intento
   const intervalId = setInterval(update, UPDATE_INTERVAL);
   return () => clearInterval(intervalId);
 };

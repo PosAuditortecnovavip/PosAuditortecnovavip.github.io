@@ -16,6 +16,7 @@ interface ExchangeRateContextValue {
   setManualRate: (value: number) => void;
   showManualModal: boolean;
   dismissManualModal: () => void;
+  promptManualRate: () => void;
   convertToBS: (usd: number) => number;
   convertToUSD: (bs: number) => number;
   formatBS: (amount: number) => string;
@@ -38,6 +39,7 @@ export const ExchangeRateProvider = ({ children }: { children: ReactNode }) => {
     if (!online) {
       const stored = getStoredRate();
       if (!stored || stored.source === 'manual') {
+        console.log('🔁 refresh: sin internet, abriendo modal manual automático');
         setShowManualModal(true);
       }
       setLoading(false);
@@ -48,6 +50,7 @@ export const ExchangeRateProvider = ({ children }: { children: ReactNode }) => {
       setRate(newRate);
       setShowManualModal(false);
     } catch (e) {
+      console.warn('Error al obtener tasa automática:', e);
       setError('No se pudo obtener la tasa BCV. Intente manualmente.');
       setShowManualModal(true);
     } finally {
@@ -62,7 +65,13 @@ export const ExchangeRateProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const dismissManualModal = () => {
+    console.log('🚪 Cerrando modal manual');
     setShowManualModal(false);
+  };
+
+  const promptManualRate = () => {
+    console.log('🖊️ promptManualRate llamado. showManualModal pasará a true.');
+    setShowManualModal(true);
   };
 
   useEffect(() => {
@@ -75,7 +84,7 @@ export const ExchangeRateProvider = ({ children }: { children: ReactNode }) => {
     return cleanup;
   }, [refresh]);
 
-  const currentRate = rate?.rate ?? 517.96;
+  const currentRate = rate?.rate ?? 62.50;
 
   const convertToBS = (usd: number) => usd * currentRate;
   const convertToUSD = (bs: number) => bs / currentRate;
@@ -93,7 +102,7 @@ export const ExchangeRateProvider = ({ children }: { children: ReactNode }) => {
 
   return (
     <ExchangeRateContext.Provider
-      value={{ rate, loading, error, refresh, setManualRate, showManualModal, dismissManualModal, convertToBS, convertToUSD, formatBS, formatUSD, formatDual }}
+      value={{ rate, loading, error, refresh, setManualRate, showManualModal, dismissManualModal, promptManualRate, convertToBS, convertToUSD, formatBS, formatUSD, formatDual }}
     >
       {children}
     </ExchangeRateContext.Provider>

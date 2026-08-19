@@ -25,35 +25,35 @@ export default function CustomerForm({ customer, onSave, onCancel }: Props) {
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
       onSubmit={handleSubmit}
-      className="glass-card p-4 space-y-3"
+      className="glass-card p-5 space-y-4"
     >
       <div className="flex justify-between items-center">
-        <h3 className="font-bold text-sm">{customer ? 'Editar Cliente' : 'Nuevo Cliente'}</h3>
-        <button type="button" onClick={onCancel} className="text-text-muted hover:text-text-primary"><X size={16} /></button>
+        <h3 className="font-bold text-lg">{customer ? 'Editar Cliente' : 'Nuevo Cliente'}</h3>
+        <button type="button" onClick={onCancel} className="text-text-muted hover:text-text-primary p-2"><X size={20} /></button>
       </div>
       <input
         value={name}
         onChange={(e) => setName(e.target.value)}
         placeholder="Nombre completo *"
         required
-        className="w-full bg-surface/50 border border-border rounded-lg p-2 text-sm outline-none focus:border-primary"
+        className="w-full bg-surface/50 border border-border rounded-xl p-4 text-base outline-none focus:border-primary"
       />
       <input
         value={phone}
         onChange={(e) => setPhone(e.target.value)}
         placeholder="Teléfono *"
         required
-        className="w-full bg-surface/50 border border-border rounded-lg p-2 text-sm outline-none focus:border-primary"
+        className="w-full bg-surface/50 border border-border rounded-xl p-4 text-base outline-none focus:border-primary"
       />
       <input
         value={email}
         onChange={(e) => setEmail(e.target.value)}
         placeholder="Correo electrónico (opcional)"
-        className="w-full bg-surface/50 border border-border rounded-lg p-2 text-sm outline-none focus:border-primary"
+        className="w-full bg-surface/50 border border-border rounded-xl p-4 text-base outline-none focus:border-primary"
       />
       <button
         type="submit"
-        className="w-full py-2 bg-primary hover:bg-primary-dark rounded-lg text-sm font-bold text-white transition"
+        className="w-full py-4 bg-primary hover:bg-primary-dark rounded-xl text-base font-bold text-white transition"
       >
         {customer ? 'Guardar cambios' : 'Registrar cliente'}
       </button>

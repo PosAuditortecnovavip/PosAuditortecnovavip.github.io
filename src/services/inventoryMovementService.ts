@@ -1,47 +1,33 @@
+import { db } from '../firebase';
+import { collection, getDocs, addDoc, query, where, orderBy } from 'firebase/firestore';
 import { InventoryMovement } from '../types';
 import { updateProductStock } from './productService';
 
-const STORAGE_KEY = 'audity_inventory_movements';
+const COL = 'inventory_movements';
 
-const getMovements = (): InventoryMovement[] => {
-  const stored = localStorage.getItem(STORAGE_KEY);
-  return stored ? JSON.parse(stored) : [];
-};
-
-const saveMovements = (movements: InventoryMovement[]): void => {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(movements));
-};
-
-export const recordMovement = (movement: Omit<InventoryMovement, 'id' | 'createdAt'>): InventoryMovement | null => {
-  const product = updateProductStock(
+export const recordMovement = async (movement: Omit<InventoryMovement, 'id' | 'createdAt'>): Promise<InventoryMovement | null> => {
+  const product = await updateProductStock(
     movement.productId,
-    movement.type === 'entry' || movement.type === 'adjustment'
-      ? movement.quantity
-      : -movement.quantity // Las salidas reducen stock
+    movement.type === 'entry' || movement.type === 'adjustment' ? movement.quantity : -movement.quantity
   );
-
   if (!product) return null;
 
-  const newMovement: InventoryMovement = {
+  const docRef = await addDoc(collection(db, COL), {
     ...movement,
-    id: `mov-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`,
     createdAt: new Date().toISOString(),
-  };
-
-  const movements = getMovements();
-  movements.push(newMovement);
-  saveMovements(movements);
-  return newMovement;
+  });
+  return { ...movement, id: docRef.id, createdAt: new Date().toISOString() };
 };
 
-export const getMovementHistory = (productId?: string): InventoryMovement[] => {
-  const movements = getMovements();
-  if (productId) {
-    return movements.filter(m => m.productId === productId);
-  }
-  return movements;
+export const getAllMovements = async (): Promise<InventoryMovement[]> => {
+  const q = query(collection(db, COL), orderBy('createdAt', 'desc'));
+  const snapshot = await getDocs(q);
+  return snapshot.docs.map(d => ({ id: d.id, ...d.data() } as InventoryMovement));
 };
 
-export const getAllMovements = (): InventoryMovement[] => {
-  return getMovements().sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+export const getMovementHistory = async (productId?: string): Promise<InventoryMovement[]> => {
+  if (!productId) return [];
+  const q = query(collection(db, COL), where('productId', '==', productId), orderBy('createdAt', 'desc'));
+  const snapshot = await getDocs(q);
+  return snapshot.docs.map(d => ({ id: d.id, ...d.data() } as InventoryMovement));
 };
