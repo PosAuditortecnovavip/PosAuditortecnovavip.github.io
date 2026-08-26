@@ -5,8 +5,11 @@ export enum UserRole {
 }
 
 export interface User {
-  role: UserRole;
+  uid: string;
+  email: string;
   name: string;
+  role: UserRole;
+  active?: boolean;
 }
 
 export interface Product {
@@ -15,7 +18,7 @@ export interface Product {
   name: string;
   category: string;
   costUSD: number;
-  priceUSD: number; // Precio de venta al público (IVA incluido)
+  priceUSD: number;
   stock: number;
   minStock: number;
   createdAt: string;
@@ -45,8 +48,8 @@ export interface SaleIVA {
   paymentMethod: 'cash_usd' | 'cash_bs' | 'transfer_bs' | 'transfer_usd' | 'mixed';
   sellerId: string;
   sellerName: string;
-  customerId?: string;   // NUEVO
-  customerName?: string; // NUEVO
+  customerId?: string;
+  customerName?: string;
   createdAt: string;
 }
 
@@ -94,7 +97,6 @@ export interface ExchangeRate {
   source: 'bcv-official' | 'fallback' | 'manual' | 'offline';
 }
 
-// NUEVO: Cliente
 export interface Customer {
   id: string;
   name: string;

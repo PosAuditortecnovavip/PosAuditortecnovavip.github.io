@@ -20,11 +20,22 @@
   --color-glow-purple: rgba(139, 92, 246, 0.3);
 }
 
+.light {
+  --color-bg-deep: #f8fafc;
+  --color-surface-dark: #f1f5f9;
+  --color-surface: #ffffff;
+  --color-surface-light: #e2e8f0;
+  --color-text-primary: #0f172a;
+  --color-text-secondary: #475569;
+  --color-text-muted: #64748b;
+  --color-border: #94a3b8;
+}
+
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  -webkit-tap-highlight-color: transparent; /* Quita el highlight azul en móviles */
+  -webkit-tap-highlight-color: transparent;
 }
 
 body {
@@ -33,13 +44,17 @@ body {
   color: var(--color-text-primary);
   min-height: 100vh;
   letter-spacing: -0.01em;
-  touch-action: manipulation; /* Mejora respuesta táctil */
+  touch-action: manipulation;
   -webkit-font-smoothing: antialiased;
 }
 
-/* Vidrio esmerilado moderno */
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
 .glass-card {
-  background: rgba(15, 23, 42, 0.7);
+  background: rgba(30, 41, 59, 0.6);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid rgba(6, 182, 212, 0.2);
@@ -48,9 +63,14 @@ body {
   transition: all 0.3s ease;
 }
 
+.light .glass-card {
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(148, 163, 184, 0.6);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+}
+
 .glass-card:hover {
   border-color: rgba(6, 182, 212, 0.4);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 .glass-panel {
@@ -61,6 +81,11 @@ body {
   border-radius: 12px;
 }
 
+.light .glass-panel {
+  background: rgba(241, 245, 249, 0.8);
+  border: 1px solid rgba(148, 163, 184, 0.5);
+}
+
 .bg-aurora {
   background:
     radial-gradient(ellipse at 20% 50%, rgba(6, 182, 212, 0.08) 0%, transparent 50%),
@@ -69,42 +94,24 @@ body {
     var(--color-bg-deep);
 }
 
+.light .bg-aurora {
+  background: #f8fafc;
+}
+
 @keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-.animate-fade-in-up {
-  animation: fadeInUp 0.5s ease forwards;
-}
+.animate-fade-in-up { animation: fadeInUp 0.5s ease forwards; }
 
-::-webkit-scrollbar {
-  width: 4px;
-  height: 4px;
-}
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-::-webkit-scrollbar-thumb {
-  background: #334155;
-  border-radius: 2px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: #475569;
-}
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #475569; }
 
-/* Mejoras para móviles */
 @media (max-width: 640px) {
-  .glass-card {
-    border-radius: 12px;
-  }
-  body {
-    font-size: 15px;
-  }
+  body { font-size: 16px; }
+  input, select, textarea { font-size: 16px !important; }
+  button, input, select, textarea { min-height: 44px; }
 }

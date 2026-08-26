@@ -1,6 +1,5 @@
 import { useState } from 'react';
-import { motion } from 'framer-motion';
-import { Search, AlertTriangle, ChevronDown, ChevronUp } from 'lucide-react';
+import { Search, AlertTriangle, ChevronDown, ChevronUp, Edit2, Trash2 } from 'lucide-react';
 import { Product } from '../../types';
 import { useExchangeRate } from '../../context/ExchangeRateContext';
 
@@ -9,19 +8,29 @@ interface Props {
   selectedProduct: Product | null;
   onSelectProduct: (product: Product | null) => void;
   refresh: () => void;
+  onEditProduct: (product: Product) => void;
+  onDeleteProduct: (product: Product) => void;
 }
 
-export default function InventoryList({ products, selectedProduct, onSelectProduct, refresh }: Props) {
+export default function InventoryList({
+  products,
+  selectedProduct,
+  onSelectProduct,
+  refresh,
+  onEditProduct,
+  onDeleteProduct,
+}: Props) {
   const [search, setSearch] = useState('');
   const [sortField, setSortField] = useState<'name' | 'stock' | 'priceUSD'>('name');
   const [sortAsc, setSortAsc] = useState(true);
   const { formatUSD } = useExchangeRate();
 
   const filtered = products
-    .filter(p =>
-      p.name.toLowerCase().includes(search.toLowerCase()) ||
-      p.code.toLowerCase().includes(search.toLowerCase()) ||
-      p.category.toLowerCase().includes(search.toLowerCase())
+    .filter(
+      (p) =>
+        p.name.toLowerCase().includes(search.toLowerCase()) ||
+        p.code.toLowerCase().includes(search.toLowerCase()) ||
+        p.category.toLowerCase().includes(search.toLowerCase())
     )
     .sort((a, b) => {
       const valA = a[sortField];
@@ -34,52 +43,54 @@ export default function InventoryList({ products, selectedProduct, onSelectProdu
 
   const handleSort = (field: typeof sortField) => {
     if (field === sortField) setSortAsc(!sortAsc);
-    else { setSortField(field); setSortAsc(true); }
+    else {
+      setSortField(field);
+      setSortAsc(true);
+    }
   };
 
   return (
     <div className="glass-card p-4 space-y-4">
-      {/* Buscador */}
       <div className="relative">
-        <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
+        <Search size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted" />
         <input
           type="text"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Buscar producto..."
-          className="w-full pl-10 pr-4 py-2 bg-surface/50 border border-border rounded-xl text-sm text-text-primary placeholder:text-text-muted outline-none focus:border-primary"
+          className="w-full pl-12 pr-4 py-4 bg-surface/50 border border-border rounded-xl text-base text-text-primary placeholder:text-text-muted outline-none focus:border-primary"
         />
       </div>
 
-      {/* Tabla */}
-      <div className="overflow-x-auto max-h-[500px] overflow-y-auto">
-        <table className="w-full text-xs md:text-sm">
+      <div className="overflow-x-auto max-h-[500px] overflow-y-auto rounded-xl">
+        <table className="w-full min-w-[700px] text-sm md:text-base">
           <thead className="bg-surface/30 sticky top-0 z-10">
             <tr className="text-text-muted">
-              <th className="text-left p-2 font-medium">Producto</th>
+              <th className="text-left p-3 font-medium">Producto</th>
               <th
-                className="p-2 font-medium cursor-pointer hover:text-text-primary"
+                className="p-3 font-medium cursor-pointer hover:text-text-primary"
                 onClick={() => handleSort('stock')}
               >
                 <div className="flex items-center gap-1">
                   Stock
-                  {sortField === 'stock' && (sortAsc ? <ChevronUp size={14} /> : <ChevronDown size={14} />)}
+                  {sortField === 'stock' && (sortAsc ? <ChevronUp size={16} /> : <ChevronDown size={16} />)}
                 </div>
               </th>
               <th
-                className="p-2 font-medium cursor-pointer hover:text-text-primary"
+                className="p-3 font-medium cursor-pointer hover:text-text-primary"
                 onClick={() => handleSort('priceUSD')}
               >
                 <div className="flex items-center gap-1">
                   Precio
-                  {sortField === 'priceUSD' && (sortAsc ? <ChevronUp size={14} /> : <ChevronDown size={14} />)}
+                  {sortField === 'priceUSD' && (sortAsc ? <ChevronUp size={16} /> : <ChevronDown size={16} />)}
                 </div>
               </th>
-              <th className="p-2 font-medium">Estado</th>
+              <th className="p-3 font-medium">Estado</th>
+              <th className="p-3 font-medium text-center">Acciones</th>
             </tr>
           </thead>
           <tbody>
-            {filtered.map(product => (
+            {filtered.map((product) => (
               <tr
                 key={product.id}
                 onClick={() => onSelectProduct(selectedProduct?.id === product.id ? null : product)}
@@ -87,32 +98,58 @@ export default function InventoryList({ products, selectedProduct, onSelectProdu
                   selectedProduct?.id === product.id ? 'bg-primary/10' : ''
                 }`}
               >
-                <td className="p-2">
+                <td className="p-3">
                   <div>
                     <p className="font-medium">{product.name}</p>
-                    <p className="text-text-muted text-[10px]">{product.code} · {product.category}</p>
+                    <p className="text-text-muted text-xs md:text-sm">
+                      {product.code} · {product.category}
+                    </p>
                   </div>
                 </td>
-                <td className="p-2 text-center">
+                <td className="p-3 text-center">
                   <span className={product.stock <= product.minStock ? 'text-warning font-bold' : ''}>
                     {product.stock}
                   </span>
                 </td>
-                <td className="p-2 text-right">{formatUSD(product.priceUSD)}</td>
-                <td className="p-2 text-center">
+                <td className="p-3 text-right">{formatUSD(product.priceUSD)}</td>
+                <td className="p-3 text-center">
                   {product.stock === 0 ? (
-                    <AlertTriangle size={16} className="text-danger inline" />
+                    <AlertTriangle size={20} className="text-danger inline" />
                   ) : product.stock <= product.minStock ? (
-                    <AlertTriangle size={16} className="text-warning inline" />
+                    <AlertTriangle size={20} className="text-warning inline" />
                   ) : (
                     <span className="text-success">●</span>
                   )}
+                </td>
+                <td className="p-3 text-center">
+                  <div className="flex justify-center gap-2">
+                    <button
+                      onClick={(e) => { e.stopPropagation(); onEditProduct(product); }}
+                      className="inline-flex items-center gap-1.5 p-2 md:p-2.5 rounded-xl text-primary hover:bg-primary/10 transition"
+                      title="Editar producto"
+                      aria-label={`Editar ${product.name}`}
+                    >
+                      <Edit2 size={18} />
+                      <span className="hidden md:inline text-sm">Editar</span>
+                    </button>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); onDeleteProduct(product); }}
+                      className="inline-flex items-center gap-1.5 p-2 md:p-2.5 rounded-xl text-danger hover:bg-danger/10 transition"
+                      title="Eliminar producto"
+                      aria-label={`Eliminar ${product.name}`}
+                    >
+                      <Trash2 size={18} />
+                      <span className="hidden md:inline text-sm">Eliminar</span>
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={4} className="text-center text-text-muted py-8">No se encontraron productos</td>
+                <td colSpan={5} className="text-center text-text-muted py-8 text-base">
+                  No se encontraron productos
+                </td>
               </tr>
             )}
           </tbody>

@@ -1,31 +1,56 @@
-import { useState, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Customer } from '../types';
 import { getAllCustomers, addCustomer, updateCustomer, deleteCustomer } from '../services/customerService';
 
 export const useCustomers = () => {
-  const [customers, setCustomers] = useState<Customer[]>(getAllCustomers);
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const refresh = useCallback(() => {
-    setCustomers(getAllCustomers());
+  const refresh = useCallback(async () => {
+    try {
+      const data = await getAllCustomers();
+      setCustomers(data);
+    } catch (error) {
+      console.error('Error cargando clientes:', error);
+    }
   }, []);
 
-  const add = useCallback((customer: Omit<Customer, 'id' | 'createdAt'>) => {
-    const newCust = addCustomer(customer);
-    refresh();
-    return newCust;
+  useEffect(() => {
+    refresh().finally(() => setLoading(false));
   }, [refresh]);
 
-  const update = useCallback((id: string, data: Partial<Customer>) => {
-    const updated = updateCustomer(id, data);
-    if (updated) refresh();
-    return updated;
+  const add = useCallback(async (customer: Omit<Customer, 'id' | 'createdAt'>) => {
+    try {
+      const newCust = await addCustomer(customer);
+      await refresh();
+      return newCust;
+    } catch (error) {
+      console.error('Error añadiendo cliente:', error);
+      return null;
+    }
   }, [refresh]);
 
-  const remove = useCallback((id: string) => {
-    const success = deleteCustomer(id);
-    if (success) refresh();
-    return success;
+  const update = useCallback(async (id: string, data: Partial<Customer>) => {
+    try {
+      const updated = await updateCustomer(id, data);
+      if (updated) await refresh();
+      return updated;
+    } catch (error) {
+      console.error('Error actualizando cliente:', error);
+      return null;
+    }
   }, [refresh]);
 
-  return { customers, add, update, remove, refresh };
+  const remove = useCallback(async (id: string) => {
+    try {
+      const success = await deleteCustomer(id);
+      if (success) await refresh();
+      return success;
+    } catch (error) {
+      console.error('Error eliminando cliente:', error);
+      return false;
+    }
+  }, [refresh]);
+
+  return { customers, add, update, remove, refresh, loading };
 };
