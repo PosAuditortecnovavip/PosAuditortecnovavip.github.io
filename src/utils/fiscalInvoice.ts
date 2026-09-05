@@ -1,6 +1,6 @@
 import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 import { Sale } from '../types';
-import { getNextInvoiceNumber } from '../services/invoiceNumberService';
 
 export const generateFiscalInvoice = async (sale: Sale, ivaRate: number): Promise<void> => {
   const exchangeRate = sale.exchangeRate;
@@ -8,24 +8,19 @@ export const generateFiscalInvoice = async (sale: Sale, ivaRate: number): Promis
   const pageWidth = 80;
   let y = 10;
 
-  // Obtener número de factura
-  const invoiceNumber = await getNextInvoiceNumber();
-
   // Encabezado
   doc.setFontSize(10);
   doc.setFont('helvetica', 'bold');
-  doc.text('Audity Pro', pageWidth / 2, y, { align: 'center' });
+  doc.text('Tecnova VIP', pageWidth / 2, y, { align: 'center' });
   y += 5;
   doc.setFontSize(6);
   doc.setFont('helvetica', 'normal');
-  doc.text('RIF: J-12345678-9', pageWidth / 2, y, { align: 'center' });
-  y += 3;
-  doc.text('Sistema de Auditoría de Inventarios', pageWidth / 2, y, { align: 'center' });
+  doc.text('Audity Pro · Sistema de Auditoría', pageWidth / 2, y, { align: 'center' });
   y += 4;
-
-  // Número de factura
+  doc.text('RIF: J-12345678-9', pageWidth / 2, y, { align: 'center' });
+  y += 4;
   doc.setFont('helvetica', 'bold');
-  doc.text(`No. Factura: ${invoiceNumber}`, pageWidth / 2, y, { align: 'center' });
+  doc.text(`No. Factura: ${sale.id}`, pageWidth / 2, y, { align: 'center' });
   y += 5;
 
   doc.setFont('helvetica', 'normal');
@@ -41,10 +36,8 @@ export const generateFiscalInvoice = async (sale: Sale, ivaRate: number): Promis
   doc.text(`Tasa BCV: ${exchangeRate.toFixed(2)} Bs/USD`, 5, y);
   y += 5;
 
-  // Línea divisoria
   doc.line(5, y, pageWidth - 5, y); y += 4;
 
-  // Encabezado de tabla
   doc.setFont('helvetica', 'bold');
   doc.text('Producto', 5, y);
   doc.text('Cant', 32, y);
@@ -53,7 +46,6 @@ export const generateFiscalInvoice = async (sale: Sale, ivaRate: number): Promis
   y += 3;
   doc.line(5, y, pageWidth - 5, y); y += 3;
 
-  // Items
   doc.setFont('helvetica', 'normal');
   for (const item of sale.items) {
     if (y > 140) { doc.addPage(); y = 10; }
@@ -66,10 +58,8 @@ export const generateFiscalInvoice = async (sale: Sale, ivaRate: number): Promis
     y += 4;
   }
 
-  y += 2;
-  doc.line(5, y, pageWidth - 5, y); y += 4;
+  y += 2; doc.line(5, y, pageWidth - 5, y); y += 4;
 
-  // Totales
   const baseImponibleBS = sale.subtotalBaseUSD * exchangeRate;
   const ivaBS = sale.subtotalIVAUSD * exchangeRate;
   const totalBS = sale.totalBS;
@@ -84,19 +74,17 @@ export const generateFiscalInvoice = async (sale: Sale, ivaRate: number): Promis
   doc.text('TOTAL:', 5, y);
   doc.text(`Bs ${totalBS.toFixed(2)}`, pageWidth - 5, y, { align: 'right' });
 
-  y += 6;
-  doc.line(5, y, pageWidth - 5, y); y += 4;
+  y += 6; doc.line(5, y, pageWidth - 5, y); y += 4;
 
-  // Pie
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(5);
   doc.text('Factura procesada según normativa SENIAT', pageWidth / 2, y, { align: 'center' });
   y += 3;
-  doc.text('Tasa de cambio BCV aplicada', pageWidth / 2, y, { align: 'center' });
+  doc.text('Tecnova VIP - Audity Pro', pageWidth / 2, y, { align: 'center' });
   y += 3;
   doc.text('Gracias por su compra', pageWidth / 2, y, { align: 'center' });
 
-  doc.save(`factura_${invoiceNumber.replace('/', '-')}.pdf`);
+  doc.save(`factura_${sale.id}.pdf`);
 };
 
 const formatPaymentMethod = (method: Sale['paymentMethod']): string => {

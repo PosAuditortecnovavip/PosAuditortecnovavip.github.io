@@ -41,12 +41,14 @@ export default function Login() {
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-accent mb-4">
             <Sparkles size={32} className="text-white" />
           </div>
-          {/* Logo de empresa */}
-          <p className="text-xs uppercase tracking-[0.3em] text-text-muted">Tecnova VIP</p>
-          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
-            Audity Pro
+          {/* TECNOVA VIP como marca principal */}
+          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-primary via-accent to-primary">
+            Tecnova VIP
           </h1>
-          <p className="text-text-secondary text-sm sm:text-base">Sistema de Auditoría de Inventarios</p>
+          {/* Audity Pro como nombre del sistema */}
+          <p className="text-sm sm:text-base text-text-secondary font-medium">
+            Audity Pro · Sistema de Auditoría de Inventarios
+          </p>
         </div>
 
         {rate && (

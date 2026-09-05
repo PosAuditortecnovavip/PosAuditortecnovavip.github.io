@@ -3,14 +3,8 @@ import { useAuth } from '../../context/AuthContext';
 import { useExchangeRate } from '../../context/ExchangeRateContext';
 import { motion } from 'framer-motion';
 import {
-  PackageOpen,
-  ShoppingCart,
-  TrendingUp,
-  TrendingDown,
-  DollarSign,
-  Activity,
-  RefreshCw,
-  Bell,
+  PackageOpen, ShoppingCart, TrendingUp, TrendingDown,
+  DollarSign, Activity, RefreshCw, Bell,
 } from 'lucide-react';
 import { getTodaySalesLocal } from '../../services/local/salesServiceLocal';
 import { useInventory } from '../../hooks/useInventory';
@@ -69,11 +63,13 @@ export default function Dashboard() {
       transition={{ duration: 0.4 }}
       className="space-y-5 md:space-y-8"
     >
-      {/* Encabezado con Tecnova VIP */}
+      {/* Encabezado con Tecnova VIP en grande */}
       <div>
-        <p className="text-xs uppercase tracking-[0.3em] text-text-muted">Tecnova VIP</p>
-        <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">Panel de Control</h1>
-        <p className="text-text-secondary mt-1 text-base md:text-lg">Bienvenido, {user?.name}</p>
+        <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+          Tecnova VIP
+        </h1>
+        <p className="text-sm md:text-base text-text-secondary">Audity Pro · Panel de Control</p>
+        <p className="text-text-secondary mt-1">Bienvenido, {user?.name}</p>
       </div>
 
       {lowStockProducts.length > 0 && (

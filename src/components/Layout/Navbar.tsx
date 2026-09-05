@@ -48,13 +48,12 @@ export default function Navbar({ activeView, onNavigate }: NavbarProps) {
   return (
     <nav className="bg-surface/60 backdrop-blur-xl border-b border-primary/10 sticky top-0 z-40 shadow-lg shadow-black/20">
       <div className="max-w-7xl mx-auto px-3 md:px-6 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <span className="text-xl md:text-2xl font-extrabold tracking-tight bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent mr-2 shrink-0">
-            Audity Pro
-          </span>
-          <span className="text-[10px] md:text-xs uppercase tracking-[0.2em] text-text-muted bg-surface/40 rounded-full px-2 py-0.5">
+        {/* Marca principal */}
+        <div className="flex flex-col leading-tight">
+          <span className="text-xl md:text-2xl font-extrabold tracking-tight bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
             Tecnova VIP
           </span>
+          <span className="text-[10px] md:text-xs text-text-muted">Audity Pro</span>
         </div>
 
         {/* Menú escritorio */}

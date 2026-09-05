@@ -10,11 +10,11 @@ export const generateTicket = (sale: Sale): void => {
 
   doc.setFontSize(10);
   doc.setFont('helvetica', 'bold');
-  doc.text('Audity Pro', pageWidth / 2, y, { align: 'center' });
+  doc.text('Tecnova VIP', pageWidth / 2, y, { align: 'center' });
   y += 5;
   doc.setFontSize(7);
   doc.setFont('helvetica', 'normal');
-  doc.text('Sistema de Auditoría de Inventarios', pageWidth / 2, y, { align: 'center' });
+  doc.text('Audity Pro · Sistema de Auditoría', pageWidth / 2, y, { align: 'center' });
   y += 4;
   doc.text('Ticket de Venta', pageWidth / 2, y, { align: 'center' });
   y += 5;
@@ -72,11 +72,11 @@ export const generateSimpleReceipt = (sale: Sale): void => {
 
   doc.setFontSize(10);
   doc.setFont('helvetica', 'bold');
-  doc.text('Audity Pro', pageWidth / 2, y, { align: 'center' });
+  doc.text('Tecnova VIP', pageWidth / 2, y, { align: 'center' });
   y += 5;
   doc.setFontSize(7);
   doc.setFont('helvetica', 'normal');
-  doc.text('Recibo simplificado', pageWidth / 2, y, { align: 'center' });
+  doc.text('Audity Pro · Recibo simplificado', pageWidth / 2, y, { align: 'center' });
   y += 5;
 
   doc.setFontSize(6);
@@ -116,14 +116,14 @@ export const generateSimpleReceipt = (sale: Sale): void => {
   doc.save(`recibo_${sale.id}.pdf`);
 };
 
-// ===================== RECIBO PARA FINANZAS (opcional) =====================
+// ===================== RECIBO PARA FINANZAS =====================
 export const generateReceipt = (transaction: Transaction, exchangeRate: number): void => {
   const doc = new jsPDF({ unit: 'mm', format: [80, 120] });
   const pageWidth = 80; let y = 10;
   doc.setFontSize(10); doc.setFont('helvetica', 'bold');
-  doc.text('Audity Pro', pageWidth / 2, y, { align: 'center' }); y += 5;
+  doc.text('Tecnova VIP', pageWidth / 2, y, { align: 'center' }); y += 5;
   doc.setFontSize(7); doc.setFont('helvetica', 'normal');
-  doc.text(transaction.type === 'income' ? 'Recibo de Ingreso' : 'Recibo de Egreso', pageWidth / 2, y, { align: 'center' }); y += 5;
+  doc.text('Audity Pro · Módulo de Finanzas', pageWidth / 2, y, { align: 'center' }); y += 5;
   doc.setFontSize(6);
   doc.text(`Fecha: ${new Date(transaction.createdAt).toLocaleString('es-VE')}`, 5, y); y += 3;
   doc.text(`Descripción: ${transaction.description}`, 5, y); y += 3;
@@ -133,7 +133,7 @@ export const generateReceipt = (transaction: Transaction, exchangeRate: number):
   doc.text(`Registrado por: ${transaction.userName}`, 5, y); y += 5;
   doc.line(5, y, pageWidth - 5, y); y += 4;
   doc.setFontSize(6);
-  doc.text('Audity Pro - Módulo de Finanzas', pageWidth / 2, y, { align: 'center' });
+  doc.text('Tecnova VIP - Audity Pro', pageWidth / 2, y, { align: 'center' });
   doc.save(`recibo_${transaction.id}.pdf`);
 };
 
@@ -147,8 +147,9 @@ export const generateFinanceReport = (
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth(); let y = 15;
   doc.setFontSize(16); doc.setFont('helvetica', 'bold');
-  doc.text('Reporte Financiero - Audity Pro', pageWidth / 2, y, { align: 'center' }); y += 8;
+  doc.text('Tecnova VIP - Reporte Financiero', pageWidth / 2, y, { align: 'center' }); y += 8;
   doc.setFontSize(10); doc.setFont('helvetica', 'normal');
+  doc.text('Audity Pro', pageWidth / 2, y, { align: 'center' }); y += 6;
   doc.text(`Fecha: ${new Date().toLocaleDateString('es-VE')}`, 14, y);
   doc.text(`Tasa BCV: ${exchangeRate.toFixed(2)} Bs/USD`, pageWidth - 14, y, { align: 'right' }); y += 6;
   doc.setFontSize(12); doc.setFont('helvetica', 'bold');
@@ -175,8 +176,9 @@ export const generateSalesReport = (sales: Sale[], exchangeRate: number): void =
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth(); let y = 15;
   doc.setFontSize(16); doc.setFont('helvetica', 'bold');
-  doc.text('Reporte de Ventas - Audity Pro', pageWidth / 2, y, { align: 'center' }); y += 8;
+  doc.text('Tecnova VIP - Reporte de Ventas', pageWidth / 2, y, { align: 'center' }); y += 8;
   doc.setFontSize(10); doc.setFont('helvetica', 'normal');
+  doc.text('Audity Pro', pageWidth / 2, y, { align: 'center' }); y += 6;
   doc.text(`Fecha: ${new Date().toLocaleDateString('es-VE')} | Tasa BCV: ${exchangeRate.toFixed(2)} Bs/USD`, 14, y); y += 8;
   const totalUSD = sales.reduce((s, sale) => s + sale.totalUSD, 0);
   doc.setFontSize(12); doc.setFont('helvetica', 'bold');
@@ -201,8 +203,9 @@ export const generateInventoryReport = (products: Product[], movements: Inventor
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth(); let y = 15;
   doc.setFontSize(16); doc.setFont('helvetica', 'bold');
-  doc.text('Reporte de Inventario - Audity Pro', pageWidth / 2, y, { align: 'center' }); y += 10;
+  doc.text('Tecnova VIP - Reporte de Inventario', pageWidth / 2, y, { align: 'center' }); y += 8;
   doc.setFontSize(10); doc.setFont('helvetica', 'normal');
+  doc.text('Audity Pro', pageWidth / 2, y, { align: 'center' }); y += 6;
   doc.text(`Fecha: ${new Date().toLocaleDateString('es-VE')} | Tasa BCV: ${exchangeRate.toFixed(2)} Bs/USD`, 14, y); y += 8;
   doc.setFontSize(12); doc.setFont('helvetica', 'bold');
   doc.text('Productos', 14, y); y += 6;
@@ -239,8 +242,9 @@ export const generateAuditReport = (records: AuditRecord[], exchangeRate: number
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth(); let y = 15;
   doc.setFontSize(16); doc.setFont('helvetica', 'bold');
-  doc.text('Reporte de Auditorías - Audity Pro', pageWidth / 2, y, { align: 'center' }); y += 10;
+  doc.text('Tecnova VIP - Reporte de Auditorías', pageWidth / 2, y, { align: 'center' }); y += 8;
   doc.setFontSize(10); doc.setFont('helvetica', 'normal');
+  doc.text('Audity Pro', pageWidth / 2, y, { align: 'center' }); y += 6;
   doc.text(`Fecha: ${new Date().toLocaleDateString('es-VE')} | Tasa BCV: ${exchangeRate.toFixed(2)} Bs/USD`, 14, y); y += 8;
   (doc as any).autoTable({
     startY: y,
@@ -259,6 +263,7 @@ export const generateAuditReport = (records: AuditRecord[], exchangeRate: number
   doc.save('reporte_auditoria.pdf');
 };
 
+// ===================== REPORTE DE STOCK BAJO =====================
 export const generateLowStockReport = (products: Product[], exchangeRate: number): void => {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
@@ -266,17 +271,14 @@ export const generateLowStockReport = (products: Product[], exchangeRate: number
 
   doc.setFontSize(16);
   doc.setFont('helvetica', 'bold');
-  doc.text('Reporte de Stock Bajo - Audity Pro', pageWidth / 2, y, { align: 'center' });
+  doc.text('Tecnova VIP - Stock Bajo', pageWidth / 2, y, { align: 'center' });
   y += 8;
   doc.setFontSize(10);
   doc.setFont('helvetica', 'normal');
+  doc.text('Audity Pro', pageWidth / 2, y, { align: 'center' });
+  y += 6;
   doc.text(`Fecha: ${new Date().toLocaleDateString('es-VE')} | Tasa BCV: ${exchangeRate.toFixed(2)} Bs/USD`, 14, y);
   y += 8;
-
-  doc.setFontSize(12);
-  doc.setFont('helvetica', 'bold');
-  doc.text('Productos con stock bajo o cero', 14, y);
-  y += 6;
 
   const lowStockProducts = products.filter((p) => p.stock <= p.minStock || p.stock === 0);
 

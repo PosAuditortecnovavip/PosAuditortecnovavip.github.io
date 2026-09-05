@@ -1,12 +1,12 @@
 import { Sale } from '../types';
 
 export const printTicket = (sale: Sale): void => {
-  const width = 80; // caracteres aprox
+  const width = 80;
   const content = `
     <div style="font-family: monospace; width: ${width}mm; padding: 2mm;">
-      <h2 style="text-align:center; margin:0;">Audity Pro</h2>
+      <h2 style="text-align:center; margin:0;">Tecnova VIP</h2>
+      <p style="text-align:center; margin:0;">Audity Pro</p>
       <p style="text-align:center; margin:0;">RIF: J-12345678-9</p>
-      <p style="text-align:center; margin:0;">Sistema de Auditoría de Inventarios</p>
       <hr/>
       <p style="text-align:center; font-size:1.2em; font-weight:bold;">TICKET DE VENTA</p>
       <p>No. Factura: ${sale.id}</p>
@@ -36,7 +36,7 @@ export const printTicket = (sale: Sale): void => {
       <p>Total Bs: Bs ${sale.totalBS.toFixed(2)}</p>
       <hr/>
       <p style="text-align:center; font-size:0.8em;">Factura procesada según normativa SENIAT</p>
-      <p style="text-align:center; font-size:0.8em;">Tasa de cambio BCV aplicada</p>
+      <p style="text-align:center; font-size:0.8em;">Tecnova VIP - Audity Pro</p>
       <p style="text-align:center; font-size:0.8em;">Gracias por su compra</p>
     </div>
   `;
