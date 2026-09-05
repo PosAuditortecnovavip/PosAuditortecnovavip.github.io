@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
-import { getProducts } from '../services/productService';
+import { getProductsLocal } from '../services/local/productServiceLocal';
 import { Product } from '../types';
 
 export const useNotifications = () => {
   const [lowStockProducts, setLowStockProducts] = useState<Product[]>([]);
 
-  const fetchLowStock = async () => {
-    const products = await getProducts();
+  const fetchLowStock = () => {
+    const products = getProductsLocal();
     setLowStockProducts(products.filter(p => p.stock <= p.minStock));
   };
 

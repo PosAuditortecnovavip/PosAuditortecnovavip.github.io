@@ -48,9 +48,14 @@ export default function Navbar({ activeView, onNavigate }: NavbarProps) {
   return (
     <nav className="bg-surface/60 backdrop-blur-xl border-b border-primary/10 sticky top-0 z-40 shadow-lg shadow-black/20">
       <div className="max-w-7xl mx-auto px-3 md:px-6 flex items-center justify-between">
-        <span className="text-xl md:text-2xl font-extrabold tracking-tight bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent mr-2 shrink-0">
-          Audity Pro
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="text-xl md:text-2xl font-extrabold tracking-tight bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent mr-2 shrink-0">
+            Audity Pro
+          </span>
+          <span className="text-[10px] md:text-xs uppercase tracking-[0.2em] text-text-muted bg-surface/40 rounded-full px-2 py-0.5">
+            Tecnova VIP
+          </span>
+        </div>
 
         {/* Menú escritorio */}
         <div className="hidden md:flex items-center gap-1 overflow-x-auto">
@@ -78,19 +83,10 @@ export default function Navbar({ activeView, onNavigate }: NavbarProps) {
             <div className="flex items-center gap-2 bg-primary/5 rounded-full px-3 py-1 text-xs font-medium text-text-secondary border border-primary/10">
               <TrendingUp size={14} className="text-primary" />
               <span>BCV: {rate.rate.toFixed(2)}</span>
-              <button
-                onClick={handleRefreshRate}
-                disabled={rateLoading}
-                className="p-0.5 rounded-full hover:bg-primary/10 transition disabled:opacity-50"
-                title="Actualizar tasa"
-              >
+              <button onClick={handleRefreshRate} disabled={rateLoading} className="p-0.5 rounded-full hover:bg-primary/10 transition disabled:opacity-50" title="Actualizar tasa">
                 <RefreshCw size={12} className={rateLoading ? 'animate-spin' : ''} />
               </button>
-              <button
-                onClick={() => { console.log('click lápiz'); promptManualRate(); }}
-                className="p-0.5 rounded-full hover:bg-primary/10 transition"
-                title="Ingresar tasa manualmente"
-              >
+              <button onClick={promptManualRate} className="p-0.5 rounded-full hover:bg-primary/10 transition" title="Ingresar tasa manualmente">
                 <Edit3 size={12} />
               </button>
             </div>
@@ -98,24 +94,17 @@ export default function Navbar({ activeView, onNavigate }: NavbarProps) {
           {lowStock.length > 0 && (
             <div className="relative">
               <Bell size={18} className="text-warning cursor-pointer" />
-              <span className="absolute -top-1 -right-1 bg-danger text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center">
-                {lowStock.length}
-              </span>
+              <span className="absolute -top-1 -right-1 bg-danger text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center">{lowStock.length}</span>
             </div>
           )}
           <button onClick={toggleTheme} className="p-1.5 rounded-full hover:bg-surface/50">
             {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
           </button>
-          <span className="text-xs font-medium text-text-secondary bg-surface/40 rounded-full px-3 py-1">
-            {user.name}
-          </span>
-          <button
-            onClick={() => { console.log('click salir'); logout(); }}
-            className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-danger hover:bg-danger/10 rounded-xl transition cursor-pointer"
-          >
+          <span className="text-xs font-medium text-text-secondary bg-surface/40 rounded-full px-3 py-1">{user.name}</span>
+          <motion.button onClick={logout} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-danger hover:bg-danger/10 rounded-xl transition cursor-pointer">
             <LogOut size={16} />
             <span>Salir</span>
-          </button>
+          </motion.button>
         </div>
 
         {/* Móvil */}
@@ -147,13 +136,15 @@ export default function Navbar({ activeView, onNavigate }: NavbarProps) {
             <div className="p-3 space-y-1">
               {allowedItems.map(({ id, label, icon: Icon }) => (
                 <button key={id} onClick={() => { onNavigate(id); setMobileMenuOpen(false); }} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition ${activeView === id ? 'bg-primary/10 text-primary' : 'text-text-secondary hover:bg-surface/50'}`}>
-                  <Icon size={18} />{label}
+                  <Icon size={18} />
+                  {label}
                 </button>
               ))}
               <div className="border-t border-border pt-2 mt-2 flex justify-between items-center">
                 <span className="text-xs text-text-muted px-4">{user.name}</span>
                 <button onClick={() => { logout(); setMobileMenuOpen(false); }} className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-danger hover:bg-danger/10 rounded-xl">
-                  <LogOut size={16} />Salir
+                  <LogOut size={16} />
+                  Salir
                 </button>
               </div>
             </div>

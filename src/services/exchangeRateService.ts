@@ -4,10 +4,7 @@ const STORAGE_KEY = 'audity_exchange_rate';
 const FALLBACK_RATE = 62.50;
 const UPDATE_INTERVAL = 30 * 60 * 1000; // 30 minutos
 
-// Función para redondear a dos decimales
-const roundToTwo = (value: number): number => {
-  return Math.round(value * 100) / 100;
-};
+const roundToTwo = (value: number): number => Math.round(value * 100) / 100;
 
 export const checkInternetAccess = async (): Promise<boolean> => {
   if (!navigator.onLine) return false;
@@ -43,50 +40,54 @@ const storeRate = (rate: ExchangeRate): void => {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(rate));
 };
 
-// Intento 1: DolarAPI (Venezuela oficial)
-const fetchFromDolarAPI = async (): Promise<number> => {
+// Obtener tasa BCV desde DolarToday (accesible, sin CORS)
+const fetchFromDolarToday = async (): Promise<number> => {
+  console.log('📡 Intentando obtener tasa BCV desde DolarToday...');
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 12000);
 
   try {
-    const res = await fetch('https://dolarapi.com/v1/dolares/venezuela', {
+    const res = await fetch('https://s3.amazonaws.com/dolartoday/data.json', {
       signal: controller.signal,
-      headers: { 'Accept': 'application/json' },
     });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    console.log('📦 Respuesta DolarToday:', data);
 
-    if (res.ok) {
-      const data = await res.json();
-      const rate = data?.oficial?.price;
-      if (rate && typeof rate === 'number') return roundToTwo(rate);
+    // DolarToday incluye la tasa BCV en data.USD.bcv
+    const bcvRate = data?.USD?.bcv;
+    if (bcvRate && typeof bcvRate === 'number') {
+      return roundToTwo(bcvRate);
     }
 
-    const res2 = await fetch('https://dolarapi.com/v1/dolares/venezuela/oficial', {
-      signal: controller.signal,
-      headers: { 'Accept': 'application/json' },
-    });
-
-    if (res2.ok) {
-      const data2 = await res2.json();
-      const rate2 = data2?.price;
-      if (rate2 && typeof rate2 === 'number') return roundToTwo(rate2);
-    }
-
-    throw new Error('Formato inesperado en DolarAPI');
+    throw new Error('No se encontró la tasa BCV en DolarToday');
+  } catch (error) {
+    console.warn('⚠️ DolarToday falló:', error);
+    throw error;
   } finally {
     clearTimeout(timeoutId);
   }
 };
 
-// Intento 2: rafnixg (respaldo)
+// Intento alternativo: usar una API de respaldo (puede fallar por CORS)
 const fetchFromRafnixg = async (): Promise<number> => {
+  console.log('📡 Intentando obtener tasa desde bcv-api.rafnixg.dev...');
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 12000);
+  const timeoutId = setTimeout(() => controller.abort(), 8000);
   try {
-    const res = await fetch('https://bcv-api.rafnixg.dev/rates/', { signal: controller.signal });
+    const res = await fetch('https://bcv-api.rafnixg.dev/rates/', {
+      signal: controller.signal,
+    });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
-    if (data?.dollar && typeof data.dollar === 'number') return roundToTwo(data.dollar);
-    throw new Error('Formato inesperado');
+    console.log('📦 Respuesta rafnixg:', data);
+    if (data?.dollar && typeof data.dollar === 'number') {
+      return roundToTwo(data.dollar);
+    }
+    throw new Error('Formato inesperado en rafnixg');
+  } catch (error) {
+    console.warn('⚠️ Rafnixg falló:', error);
+    throw error;
   } finally {
     clearTimeout(timeoutId);
   }
@@ -95,14 +96,14 @@ const fetchFromRafnixg = async (): Promise<number> => {
 export const fetchExchangeRate = async (): Promise<ExchangeRate> => {
   const now = new Date().toISOString().split('T')[0];
 
-  // 1. DolarAPI
+  // 1. DolarToday (BCV)
   try {
-    const rate = await fetchFromDolarAPI();
+    const rate = await fetchFromDolarToday();
     const result: ExchangeRate = { rate, date: now, source: 'bcv-official' };
     storeRate(result);
     return result;
   } catch (e) {
-    console.info('DolarAPI falló, intentando rafnixg...');
+    console.info('ℹ️ DolarToday no disponible, probando respaldo...');
   }
 
   // 2. Rafnixg
@@ -112,14 +113,18 @@ export const fetchExchangeRate = async (): Promise<ExchangeRate> => {
     storeRate(result);
     return result;
   } catch (e) {
-    console.info('Rafnixg falló, usando respaldo local.');
+    console.info('ℹ️ Rafnixg no disponible, usando respaldo local...');
   }
 
   // 3. Tasa almacenada
   const stored = getStoredRate();
-  if (stored) return { ...stored, source: 'offline' };
+  if (stored) {
+    console.log('💾 Usando tasa almacenada:', stored);
+    return { ...stored, source: 'offline' };
+  }
 
-  // 4. Tasa hardcodeada (redondeada)
+  // 4. Tasa hardcodeada
+  console.warn('🔴 Usando tasa de respaldo hardcodeada:', FALLBACK_RATE);
   return { rate: roundToTwo(FALLBACK_RATE), date: now, source: 'offline' };
 };
 
@@ -132,9 +137,11 @@ export const saveManualRate = (rateValue: number): ExchangeRate => {
 
 export const setupAutoUpdate = (callback: (rate: ExchangeRate) => void): (() => void) => {
   const update = () => {
-    checkInternetAccess().then(online => {
+    checkInternetAccess().then((online) => {
       if (online) {
         fetchExchangeRate().then(callback).catch(console.error);
+      } else {
+        console.warn('📴 Sin conexión a internet.');
       }
     });
   };

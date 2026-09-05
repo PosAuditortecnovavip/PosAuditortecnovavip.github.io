@@ -10,9 +10,10 @@ import {
   RefreshCw,
   AlertTriangle,
   RotateCcw,
+  History,
 } from 'lucide-react';
 import { useExchangeRate } from '../../context/ExchangeRateContext';
-import { getAllSales } from '../../services/salesService';
+import { getAllSales } from '../../services/salesService'; // Servicio online
 import { useInventory } from '../../hooks/useInventory';
 import { useAudit } from '../../hooks/useAudit';
 import { useFinance } from '../../hooks/useFinance';
@@ -27,14 +28,16 @@ import { generateFiscalInvoice } from '../../utils/fiscalInvoice';
 import { useSettings } from '../../context/SettingsContext';
 import CreditNoteModal from '../CreditNote/CreditNoteModal';
 import { Sale } from '../../types';
+import { getAllProductLogs, ProductLogEntry } from '../../services/productLogService';
 
-type Tab = 'sales' | 'inventory' | 'audit' | 'finance';
+type Tab = 'sales' | 'inventory' | 'audit' | 'finance' | 'productLogs';
 
 const tabs: { id: Tab; label: string; icon: typeof FileText }[] = [
   { id: 'sales', label: 'Ventas', icon: ShoppingCart },
   { id: 'inventory', label: 'Inventario', icon: PackageOpen },
   { id: 'audit', label: 'Auditoría', icon: ClipboardCheck },
   { id: 'finance', label: 'Finanzas', icon: DollarSign },
+  { id: 'productLogs', label: 'Registro de Productos', icon: History },
 ];
 
 export default function Reports() {
@@ -48,8 +51,8 @@ export default function Reports() {
   const { products, movements, loading: inventoryLoading } = useInventory();
   const { history: auditHistory, loading: auditLoading } = useAudit();
   const { transactions, balance, totalSalesUSD, loading: financeLoading } = useFinance();
+  const [productLogs, setProductLogs] = useState<ProductLogEntry[]>([]);
 
-  // Para nota de crédito
   const [selectedSale, setSelectedSale] = useState<Sale | null>(null);
   const [showCreditNote, setShowCreditNote] = useState(false);
 
@@ -58,18 +61,22 @@ export default function Reports() {
       .then(setAllSales)
       .catch(console.error)
       .finally(() => setSalesLoading(false));
+
+    getAllProductLogs()
+      .then(setProductLogs)
+      .catch(console.error);
   }, []);
 
   useEffect(() => {
     const handleUpdate = () => {
       getAllSales().then(setAllSales).catch(console.error);
+      getAllProductLogs().then(setProductLogs).catch(console.error);
     };
     window.addEventListener('inventory-updated', handleUpdate);
     return () => window.removeEventListener('inventory-updated', handleUpdate);
   }, []);
 
-  const isLoading =
-    salesLoading || inventoryLoading || auditLoading || financeLoading;
+  const isLoading = salesLoading || inventoryLoading || auditLoading || financeLoading;
 
   const handleDownload = () => {
     switch (activeTab) {
@@ -85,6 +92,8 @@ export default function Reports() {
       case 'finance':
         generateFinanceReport(transactions, balance, exchange, totalSalesUSD);
         break;
+      default:
+        break;
     }
   };
 
@@ -97,6 +106,7 @@ export default function Reports() {
     inventory: products.length,
     audit: auditHistory.length,
     finance: transactions.length,
+    productLogs: productLogs.length,
   };
 
   const handleCreditNoteSuccess = () => {
@@ -111,16 +121,14 @@ export default function Reports() {
     >
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">
-            Reportes
-          </h1>
+          <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">Reportes</h1>
           <p className="text-text-secondary mt-1 text-sm md:text-base">
             Consolidado de toda la operación
           </p>
         </div>
         <button
           onClick={handleDownload}
-          disabled={countData[activeTab] === 0 || isLoading}
+          disabled={countData[activeTab] === 0 || isLoading || activeTab === 'productLogs'}
           className="glass-card px-4 py-2 text-sm font-medium text-primary hover:bg-primary/10 transition disabled:opacity-40 flex items-center gap-2"
         >
           <Download size={16} />
@@ -168,9 +176,7 @@ export default function Reports() {
               <div>
                 <h2 className="font-bold text-lg mb-3">Historial de Ventas</h2>
                 {allSales.length === 0 ? (
-                  <p className="text-text-muted text-sm">
-                    No hay ventas registradas.
-                  </p>
+                  <p className="text-text-muted text-sm">No hay ventas registradas.</p>
                 ) : (
                   <table className="w-full text-xs md:text-sm min-w-[700px]">
                     <thead className="bg-surface/30">
@@ -186,10 +192,7 @@ export default function Reports() {
                     </thead>
                     <tbody>
                       {allSales.map((sale) => (
-                        <tr
-                          key={sale.id}
-                          className="border-b border-border/20"
-                        >
+                        <tr key={sale.id} className="border-b border-border/20">
                           <td className="p-2 md:p-3">
                             {new Date(sale.createdAt).toLocaleString('es-VE', {
                               dateStyle: 'short',
@@ -198,27 +201,18 @@ export default function Reports() {
                           </td>
                           <td className="p-2 md:p-3">{sale.sellerName}</td>
                           <td className="p-2 md:p-3">{sale.items.length}</td>
-                          <td className="p-2 md:p-3 text-right">
-                            ${sale.totalUSD.toFixed(2)}
-                          </td>
-                          <td className="p-2 md:p-3 text-right">
-                            Bs {sale.totalBS.toFixed(2)}
-                          </td>
+                          <td className="p-2 md:p-3 text-right">${sale.totalUSD.toFixed(2)}</td>
+                          <td className="p-2 md:p-3 text-right">Bs {sale.totalBS.toFixed(2)}</td>
                           <td className="p-2 md:p-3">{sale.paymentMethod}</td>
                           <td className="p-2 md:p-3">
                             <div className="flex justify-center gap-2">
                               <button
-                                onClick={() =>
-                                  generateFiscalInvoice(sale, ivaRate)
-                                }
+                                onClick={() => generateFiscalInvoice(sale, ivaRate)}
                                 className="inline-flex items-center gap-1 p-2 md:p-2.5 rounded-lg text-primary hover:bg-primary/10 transition"
                                 title="Generar factura fiscal"
-                                aria-label="Generar factura fiscal"
                               >
                                 <FileText size={16} />
-                                <span className="hidden md:inline text-xs md:text-sm">
-                                  Factura fiscal
-                                </span>
+                                <span className="hidden md:inline text-xs md:text-sm">Factura fiscal</span>
                               </button>
                               <button
                                 onClick={() => {
@@ -227,12 +221,9 @@ export default function Reports() {
                                 }}
                                 className="inline-flex items-center gap-1 p-2 md:p-2.5 rounded-lg text-warning hover:bg-warning/10 transition"
                                 title="Emitir nota de crédito"
-                                aria-label="Emitir nota de crédito"
                               >
                                 <RotateCcw size={16} />
-                                <span className="hidden md:inline text-xs md:text-sm">
-                                  Nota de crédito
-                                </span>
+                                <span className="hidden md:inline text-xs md:text-sm">Nota de crédito</span>
                               </button>
                             </div>
                           </td>
@@ -246,9 +237,7 @@ export default function Reports() {
 
             {activeTab === 'inventory' && (
               <div>
-                <h2 className="font-bold text-lg mb-3">
-                  Estado del Inventario
-                </h2>
+                <h2 className="font-bold text-lg mb-3">Estado del Inventario</h2>
                 <table className="w-full text-xs md:text-sm min-w-[700px]">
                   <thead className="bg-surface/30">
                     <tr className="text-text-muted">
@@ -267,12 +256,8 @@ export default function Reports() {
                         <td className="p-2 md:p-3">{p.name}</td>
                         <td className="p-2 md:p-3">{p.category}</td>
                         <td className="p-2 md:p-3 text-right">{p.stock}</td>
-                        <td className="p-2 md:p-3 text-right">
-                          ${p.costUSD.toFixed(2)}
-                        </td>
-                        <td className="p-2 md:p-3 text-right">
-                          ${p.priceUSD.toFixed(2)}
-                        </td>
+                        <td className="p-2 md:p-3 text-right">${p.costUSD.toFixed(2)}</td>
+                        <td className="p-2 md:p-3 text-right">${p.priceUSD.toFixed(2)}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -282,13 +267,9 @@ export default function Reports() {
 
             {activeTab === 'audit' && (
               <div>
-                <h2 className="font-bold text-lg mb-3">
-                  Registros de Auditoría
-                </h2>
+                <h2 className="font-bold text-lg mb-3">Registros de Auditoría</h2>
                 {auditHistory.length === 0 ? (
-                  <p className="text-text-muted text-sm">
-                    Sin auditorías realizadas.
-                  </p>
+                  <p className="text-text-muted text-sm">Sin auditorías realizadas.</p>
                 ) : (
                   <table className="w-full text-xs md:text-sm min-w-[700px]">
                     <thead className="bg-surface/30">
@@ -312,15 +293,9 @@ export default function Reports() {
                             })}
                           </td>
                           <td className="p-2 md:p-3">{r.productName}</td>
-                          <td className="p-2 md:p-3 text-right">
-                            {r.systemStock}
-                          </td>
-                          <td className="p-2 md:p-3 text-right">
-                            {r.physicalStock}
-                          </td>
-                          <td className="p-2 md:p-3 text-right">
-                            {r.difference}
-                          </td>
+                          <td className="p-2 md:p-3 text-right">{r.systemStock}</td>
+                          <td className="p-2 md:p-3 text-right">{r.physicalStock}</td>
+                          <td className="p-2 md:p-3 text-right">{r.difference}</td>
                           <td className="p-2 md:p-3">{r.reason}</td>
                           <td className="p-2 md:p-3">{r.auditorName}</td>
                         </tr>
@@ -333,13 +308,9 @@ export default function Reports() {
 
             {activeTab === 'finance' && (
               <div>
-                <h2 className="font-bold text-lg mb-3">
-                  Transacciones Financieras
-                </h2>
+                <h2 className="font-bold text-lg mb-3">Transacciones Financieras</h2>
                 {transactions.length === 0 ? (
-                  <p className="text-text-muted text-sm">
-                    Sin transacciones registradas.
-                  </p>
+                  <p className="text-text-muted text-sm">Sin transacciones registradas.</p>
                 ) : (
                   <table className="w-full text-xs md:text-sm min-w-[700px]">
                     <thead className="bg-surface/30">
@@ -363,19 +334,52 @@ export default function Reports() {
                           </td>
                           <td className="p-2 md:p-3">{t.description}</td>
                           <td className="p-2 md:p-3">{t.category}</td>
-                          <td
-                            className={`p-2 md:p-3 font-medium ${
-                              t.type === 'income'
-                                ? 'text-success'
-                                : 'text-danger'
-                            }`}
-                          >
+                          <td className={`p-2 md:p-3 font-medium ${t.type === 'income' ? 'text-success' : 'text-danger'}`}>
                             {t.type === 'income' ? 'Ingreso' : 'Egreso'}
                           </td>
-                          <td className="p-2 md:p-3 text-right">
-                            ${t.amountUSD.toFixed(2)}
-                          </td>
+                          <td className="p-2 md:p-3 text-right">${t.amountUSD.toFixed(2)}</td>
                           <td className="p-2 md:p-3">{t.userName}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+              </div>
+            )}
+
+            {activeTab === 'productLogs' && (
+              <div>
+                <h2 className="font-bold text-lg mb-3">Registro de Productos</h2>
+                {productLogs.length === 0 ? (
+                  <p className="text-text-muted text-sm">No hay registros de productos.</p>
+                ) : (
+                  <table className="w-full text-xs md:text-sm min-w-[700px]">
+                    <thead className="bg-surface/30">
+                      <tr className="text-text-muted">
+                        <th className="text-left p-2 md:p-3">Fecha / Hora</th>
+                        <th className="text-left p-2 md:p-3">Usuario</th>
+                        <th className="text-left p-2 md:p-3">Acción</th>
+                        <th className="text-left p-2 md:p-3">Producto</th>
+                        <th className="text-left p-2 md:p-3">Código</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {productLogs.map((log) => (
+                        <tr key={log.id} className="border-b border-border/20">
+                          <td className="p-2 md:p-3">
+                            {new Date(log.timestamp).toLocaleString('es-VE', {
+                              dateStyle: 'short',
+                              timeStyle: 'short',
+                            })}
+                          </td>
+                          <td className="p-2 md:p-3">{log.userName}</td>
+                          <td className="p-2 md:p-3">
+                            <span className={log.action === 'created' ? 'text-success' : 'text-danger'}>
+                              {log.action === 'created' ? 'Creación' : 'Eliminación'}
+                            </span>
+                          </td>
+                          <td className="p-2 md:p-3">{log.productName}</td>
+                          <td className="p-2 md:p-3">{log.productCode}</td>
                         </tr>
                       ))}
                     </tbody>

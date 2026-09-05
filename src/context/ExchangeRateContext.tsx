@@ -1,12 +1,10 @@
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { ExchangeRate } from '../types';
 import {
-  fetchExchangeRate,
   getStoredRate,
-  setupAutoUpdate,
-  checkInternetAccess,
   saveManualRate,
-} from '../services/exchangeRateService';
+  fetchExchangeRate,
+} from '../services/local/exchangeRateServiceLocal';
 
 interface ExchangeRateContextValue {
   rate: ExchangeRate | null;
@@ -27,32 +25,26 @@ interface ExchangeRateContextValue {
 const ExchangeRateContext = createContext<ExchangeRateContextValue | null>(null);
 
 export const ExchangeRateProvider = ({ children }: { children: ReactNode }) => {
-  const [rate, setRate] = useState<ExchangeRate | null>(getStoredRate);
-  const [loading, setLoading] = useState(!rate);
+  const [rate, setRate] = useState<ExchangeRate | null>(getStoredRate());
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showManualModal, setShowManualModal] = useState(false);
 
   const refresh = useCallback(async () => {
     setLoading(true);
     setError(null);
-    const online = await checkInternetAccess();
-    if (!online) {
-      const stored = getStoredRate();
-      if (!stored || stored.source === 'manual') {
-        console.log('🔁 refresh: sin internet, abriendo modal manual automático');
-        setShowManualModal(true);
-      }
-      setLoading(false);
-      return;
-    }
     try {
       const newRate = await fetchExchangeRate();
       setRate(newRate);
       setShowManualModal(false);
     } catch (e) {
-      console.warn('Error al obtener tasa automática:', e);
-      setError('No se pudo obtener la tasa BCV. Intente manualmente.');
-      setShowManualModal(true);
+      // No mostrar error, solo usar la tasa guardada
+      const stored = getStoredRate();
+      if (stored) {
+        setRate(stored);
+      } else {
+        setShowManualModal(true);
+      }
     } finally {
       setLoading(false);
     }
@@ -65,23 +57,16 @@ export const ExchangeRateProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const dismissManualModal = () => {
-    console.log('🚪 Cerrando modal manual');
     setShowManualModal(false);
   };
 
   const promptManualRate = () => {
-    console.log('🖊️ promptManualRate llamado. showManualModal pasará a true.');
     setShowManualModal(true);
   };
 
   useEffect(() => {
-    const cleanup = setupAutoUpdate((newRate) => {
-      setRate(newRate);
-      setShowManualModal(false);
-      setLoading(false);
-    });
+    // Intento inicial silencioso
     refresh();
-    return cleanup;
   }, [refresh]);
 
   const currentRate = rate?.rate ?? 62.50;
@@ -90,10 +75,20 @@ export const ExchangeRateProvider = ({ children }: { children: ReactNode }) => {
   const convertToUSD = (bs: number) => bs / currentRate;
 
   const formatBS = (amount: number) =>
-    new Intl.NumberFormat('es-VE', { style: 'currency', currency: 'VES', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amount);
+    new Intl.NumberFormat('es-VE', {
+      style: 'currency',
+      currency: 'VES',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(amount);
 
   const formatUSD = (amount: number) =>
-    new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amount);
+    new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(amount);
 
   const formatDual = (usd: number) => {
     const bs = convertToBS(usd);
@@ -102,7 +97,21 @@ export const ExchangeRateProvider = ({ children }: { children: ReactNode }) => {
 
   return (
     <ExchangeRateContext.Provider
-      value={{ rate, loading, error, refresh, setManualRate, showManualModal, dismissManualModal, promptManualRate, convertToBS, convertToUSD, formatBS, formatUSD, formatDual }}
+      value={{
+        rate,
+        loading,
+        error,
+        refresh,
+        setManualRate,
+        showManualModal,
+        dismissManualModal,
+        promptManualRate,
+        convertToBS,
+        convertToUSD,
+        formatBS,
+        formatUSD,
+        formatDual,
+      }}
     >
       {children}
     </ExchangeRateContext.Provider>

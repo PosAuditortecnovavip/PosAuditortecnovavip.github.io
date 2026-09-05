@@ -41,6 +41,8 @@ export default function Login() {
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-accent mb-4">
             <Sparkles size={32} className="text-white" />
           </div>
+          {/* Logo de empresa */}
+          <p className="text-xs uppercase tracking-[0.3em] text-text-muted">Tecnova VIP</p>
           <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
             Audity Pro
           </h1>

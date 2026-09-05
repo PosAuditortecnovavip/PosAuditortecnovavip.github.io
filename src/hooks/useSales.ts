@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Product, SaleItemIVA, Sale } from '../types';
-import { getProducts } from '../services/productService';
-import { recordSale } from '../services/salesService';
+import { getProductsLocal } from '../services/local/productServiceLocal';
+import { recordSaleLocal } from '../services/local/salesServiceLocal';
 import { useAuth } from '../context/AuthContext';
 import { useExchangeRate } from '../context/ExchangeRateContext';
 
@@ -22,15 +22,13 @@ export const useSales = () => {
   const { convertToBS, rate } = useExchangeRate();
 
   useEffect(() => {
-    getProducts()
-      .then(setProducts)
-      .catch(console.error)
-      .finally(() => setLoadingProducts(false));
+    setProducts(getProductsLocal());
+    setLoadingProducts(false);
   }, []);
 
   useEffect(() => {
     const handleInventoryUpdate = () => {
-      getProducts().then(setProducts).catch(console.error);
+      setProducts(getProductsLocal());
     };
     window.addEventListener('inventory-updated', handleInventoryUpdate);
     return () => window.removeEventListener('inventory-updated', handleInventoryUpdate);
@@ -59,14 +57,26 @@ export const useSales = () => {
       if (existing) {
         return prev.map(item =>
           item.productId === product.id
-            ? { ...item, quantity: newQty, subtotalUSD: newQty * item.priceUSD, baseUSD: baseUnitario, ivaUSD: ivaUnitario, stock: product.stock }
+            ? {
+                ...item,
+                quantity: newQty,
+                subtotalUSD: newQty * item.priceUSD,
+                baseUSD: baseUnitario,
+                ivaUSD: ivaUnitario,
+                stock: product.stock,
+              }
             : item
         );
       }
       return [...prev, {
-        productId: product.id, productName: product.name, quantity,
-        priceUSD: product.priceUSD, baseUSD: baseUnitario, ivaUSD: ivaUnitario,
-        subtotalUSD: product.priceUSD * quantity, stock: product.stock,
+        productId: product.id,
+        productName: product.name,
+        quantity,
+        priceUSD: product.priceUSD,
+        baseUSD: baseUnitario,
+        ivaUSD: ivaUnitario,
+        subtotalUSD: product.priceUSD * quantity,
+        stock: product.stock,
       }];
     });
   }, []);
@@ -105,10 +115,7 @@ export const useSales = () => {
   };
 
   const checkout = useCallback(async (): Promise<Sale | null> => {
-    if (cart.length === 0 || !user || !rate) {
-      console.warn('checkout abortado: carrito vacío o falta user/rate');
-      return null;
-    }
+    if (cart.length === 0 || !user || !rate) return null;
 
     setCheckoutLoading(true);
     setError(null);
@@ -119,7 +126,6 @@ export const useSales = () => {
     const subtotalBaseUSD = cart.reduce((sum, item) => sum + item.baseUSD * item.quantity, 0);
     const subtotalIVAUSD = cart.reduce((sum, item) => sum + item.ivaUSD * item.quantity, 0);
 
-    // Construir objeto de venta sin campos undefined
     const saleData: Omit<Sale, 'id' | 'createdAt'> = {
       items,
       subtotalBaseUSD,
@@ -138,24 +144,20 @@ export const useSales = () => {
     }
 
     try {
-      console.log('🚀 Ejecutando recordSale...');
-      const sale = await recordSale(saleData);
-
+      const sale = recordSaleLocal(saleData);
       if (sale) {
-        console.log('✅ Venta registrada:', sale.id);
         clearCart();
         setCustomerId('');
         setCustomerName('');
         window.dispatchEvent(new Event('inventory-updated'));
         return sale;
       } else {
-        console.error('❌ recordSale devolvió null (posible falta de stock)');
         showError('No se pudo completar la venta. Verifique el stock.');
         return null;
       }
     } catch (err) {
-      console.error('❌ Error al registrar venta:', err);
-      showError('Error de conexión al guardar la venta. Intente de nuevo.');
+      console.error('Error al registrar venta:', err);
+      showError('Error al guardar la venta.');
       return null;
     } finally {
       setCheckoutLoading(false);

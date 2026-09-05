@@ -66,7 +66,6 @@ export const useAudit = () => {
         window.dispatchEvent(new Event('inventory-updated'));
       }
 
-      // Refrescar historial
       const newHistory = await getAuditHistory();
       setHistory(newHistory);
       return audit;

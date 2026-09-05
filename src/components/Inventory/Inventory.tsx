@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { PackageOpen, TrendingUp, Plus, RefreshCw } from 'lucide-react';
+import { PackageOpen, TrendingUp, Plus, RefreshCw, Loader2 } from 'lucide-react';
 import { useInventory } from '../../hooks/useInventory';
 import { useExchangeRate } from '../../context/ExchangeRateContext';
 import InventoryList from './InventoryList';
@@ -28,6 +28,7 @@ export default function Inventory() {
   const [showAddProduct, setShowAddProduct] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [productHistory, setProductHistory] = useState(movements);
+  const [savingProduct, setSavingProduct] = useState(false);
 
   useEffect(() => {
     if (selectedProduct) {
@@ -37,15 +38,26 @@ export default function Inventory() {
     }
   }, [selectedProduct, movements, productMovements]);
 
-  const handleAddProduct = async (productData: any) => {
-    await addNewProduct(productData);
-    setShowAddProduct(false);
+  const handleAddProduct = async (productData: Omit<Product, 'id' | 'createdAt' | 'updatedAt'>) => {
+    setSavingProduct(true);
+    try {
+      await addNewProduct(productData);
+      setShowAddProduct(false);
+    } finally {
+      setSavingProduct(false);
+    }
   };
 
-  const handleEditProduct = async (productData: any) => {
+  const handleEditProduct = async (productData: Omit<Product, 'id' | 'createdAt' | 'updatedAt'>) => {
     if (!editingProduct) return;
-    await editProduct(editingProduct.id, productData);
-    setEditingProduct(null);
+    setSavingProduct(true);
+    try {
+      await editProduct(editingProduct.id, productData);
+      setEditingProduct(null);
+      setShowAddProduct(false);
+    } finally {
+      setSavingProduct(false);
+    }
   };
 
   const handleDeleteProduct = async (product: Product) => {
@@ -81,7 +93,7 @@ export default function Inventory() {
           </div>
           <button
             onClick={openAdd}
-            className="glass-card px-4 py-2 flex items-center gap-2 text-sm font-medium text-primary hover:bg-primary/10 transition"
+            className="glass-card px-4 py-2 flex items-center gap-2 text-sm font-medium text-primary hover:bg-primary/10 dark:hover:bg-primary/20 transition"
           >
             <Plus size={16} />
             Nuevo producto

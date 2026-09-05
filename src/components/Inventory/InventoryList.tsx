@@ -58,7 +58,7 @@ export default function InventoryList({
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Buscar producto..."
-          className="w-full pl-12 pr-4 py-4 bg-surface/50 border border-border rounded-xl text-base text-text-primary placeholder:text-text-muted outline-none focus:border-primary"
+          className="w-full pl-12 pr-4 py-3.5 md:py-3 bg-surface border border-border rounded-xl text-base text-text-primary placeholder:text-text-muted outline-none focus:border-primary transition"
         />
       </div>
 
@@ -124,8 +124,11 @@ export default function InventoryList({
                 <td className="p-3 text-center">
                   <div className="flex justify-center gap-2">
                     <button
-                      onClick={(e) => { e.stopPropagation(); onEditProduct(product); }}
-                      className="inline-flex items-center gap-1.5 p-2 md:p-2.5 rounded-xl text-primary hover:bg-primary/10 transition"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onEditProduct(product);
+                      }}
+                      className="inline-flex items-center gap-1.5 p-2 md:p-2.5 rounded-xl text-primary hover:bg-primary/10 dark:hover:bg-primary/20 transition"
                       title="Editar producto"
                       aria-label={`Editar ${product.name}`}
                     >
@@ -133,8 +136,11 @@ export default function InventoryList({
                       <span className="hidden md:inline text-sm">Editar</span>
                     </button>
                     <button
-                      onClick={(e) => { e.stopPropagation(); onDeleteProduct(product); }}
-                      className="inline-flex items-center gap-1.5 p-2 md:p-2.5 rounded-xl text-danger hover:bg-danger/10 transition"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onDeleteProduct(product);
+                      }}
+                      className="inline-flex items-center gap-1.5 p-2 md:p-2.5 rounded-xl text-danger hover:bg-danger/10 dark:hover:bg-danger/20 transition"
                       title="Eliminar producto"
                       aria-label={`Eliminar ${product.name}`}
                     >
