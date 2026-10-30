@@ -50,53 +50,31 @@ export default function Inventory() {
               <p className="font-bold text-lg">{formatUSD(totalValueUSD)}</p>
             </div>
           </div>
-          <button onClick={() => { setEditingProduct(null); setShowAddProduct(true); }} className="glass-card px-4 py-2 flex items-center gap-2 text-sm font-medium text-primary hover:bg-primary/10 transition">
-            <Plus size={16} /> Nuevo producto
-          </button>
+          <button onClick={() => { setEditingProduct(null); setShowAddProduct(true); }} className="glass-card px-4 py-2 flex items-center gap-2 text-sm font-medium text-primary hover:bg-primary/10 transition"><Plus size={16} /> Nuevo producto</button>
         </div>
       </div>
 
       {loading ? (
-        <div className="text-center py-8 text-text-muted">
-          <RefreshCw size={24} className="mx-auto mb-2 animate-spin" />
-          <p>Cargando inventario...</p>
-        </div>
+        <div className="text-center py-8 text-text-muted"><RefreshCw size={24} className="mx-auto mb-2 animate-spin" /><p>Cargando inventario...</p></div>
       ) : (
         <>
           {showAddProduct && (
             <AddProduct
               product={editingProduct}
+              allProducts={products} /* IMPORTANTE: Pasamos la lista de productos */
               onSave={editingProduct ? handleEditProduct : handleAddProduct}
               onCancel={() => { setShowAddProduct(false); setEditingProduct(null); }}
             />
           )}
-
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
             <div className="lg:col-span-2">
-              <InventoryList
-                products={products}
-                selectedProduct={selectedProduct}
-                onSelectProduct={setSelectedProduct}
-                refresh={refresh}
-                onEditProduct={(p) => { setEditingProduct(p); setShowAddProduct(true); }}
-                onDeleteProduct={handleDeleteProduct}
-              />
+              <InventoryList products={products} selectedProduct={selectedProduct} onSelectProduct={setSelectedProduct} refresh={refresh} onEditProduct={(p) => { setEditingProduct(p); setShowAddProduct(true); }} onDeleteProduct={handleDeleteProduct} />
             </div>
             <div className="space-y-4">
               {selectedProduct ? (
-                <MovementForm
-                  product={selectedProduct}
-                  onSubmit={(type, quantity, reason, origin) => {
-                    addMovement(selectedProduct.id, type, quantity, reason, origin);
-                    setSelectedProduct(null);
-                  }}
-                  onCancel={() => setSelectedProduct(null)}
-                />
+                <MovementForm product={selectedProduct} onSubmit={(type, quantity, reason, origin) => { addMovement(selectedProduct.id, type, quantity, reason, origin); setSelectedProduct(null); }} onCancel={() => setSelectedProduct(null)} />
               ) : (
-                <div className="glass-card p-4 text-center text-text-muted text-sm">
-                  <PackageOpen size={32} className="mx-auto mb-2 opacity-50" />
-                  Seleccione un producto para registrar un movimiento
-                </div>
+                <div className="glass-card p-4 text-center text-text-muted text-sm"><PackageOpen size={32} className="mx-auto mb-2 opacity-50" />Seleccione un producto para registrar un movimiento</div>
               )}
               <MovementHistory movements={selectedProduct ? productHistory : movements} productName={selectedProduct?.name} />
             </div>
