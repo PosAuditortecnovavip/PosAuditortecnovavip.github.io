@@ -9,6 +9,7 @@ import { generatePurchasesReport } from '../../utils/pdfGenerator';
 import { exportPurchasesExcel } from '../../utils/excelGenerator';
 import PurchaseForm from './PurchaseForm';
 import PurchaseList from './PurchaseList';
+import { PurchaseItemInput } from '../../services/purchaseService';
 
 export default function PurchasesPage() {
   const { purchases, addPurchase, refresh, loading } = usePurchases();
@@ -19,7 +20,7 @@ export default function PurchasesPage() {
 
   useEffect(() => { refresh(); }, [refresh]);
 
-  const handleSubmit = async (data: any) => {
+  const handleSubmit = async (data: { supplier: string; items: PurchaseItemInput[] }) => {
     if (!user) return;
     await addPurchase({ ...data, userId: user.uid, userName: user.name });
     await refreshInventory();
