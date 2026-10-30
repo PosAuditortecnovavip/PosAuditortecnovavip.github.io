@@ -5,9 +5,9 @@
   "type": "module",
   "homepage": "https://PosAuditortecnovavip.github.io",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc -b && vite build",
-    "preview": "vite preview"
+    "dev": "npx vite",
+    "build": "npx tsc -b && npx vite build",
+    "preview": "npx vite preview"
   },
   "dependencies": {
     "firebase": "^10.14.0",
@@ -29,4 +29,5 @@
     "typescript": "^5.5.3",
     "vite": "^5.4.0"
   }
+}
 }
