@@ -257,3 +257,39 @@ export const generatePurchasesReport = (purchases: Purchase[], exchangeRate: num
   });
   doc.save('reporte_compras.pdf');
 };
+export const generatePurchasesReport = (purchases: Purchase[], exchangeRate: number): void => {
+  const doc = new jsPDF();
+  const pageWidth = doc.internal.pageSize.getWidth();
+  let y = 15;
+  y = header(doc, pageWidth, 'Reporte de Compras', y);
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'normal');
+  doc.text(`Fecha: ${new Date().toLocaleDateString('es-VE')} | Tasa BCV: ${exchangeRate.toFixed(2)} Bs/USD`, 14, y);
+  y += 8;
+  const totalUSD = purchases.reduce((s, p) => s + p.totalUSD, 0);
+  doc.setFontSize(12);
+  doc.setFont('helvetica', 'bold');
+  doc.text(`Total invertido: $${totalUSD.toFixed(2)} / Bs ${(totalUSD * exchangeRate).toFixed(2)}`, 14, y);
+  y += 6;
+
+  const rows = purchases.flatMap((p) =>
+    p.items.map((it) => [
+      new Date(p.createdAt).toLocaleString('es-VE'),
+      p.supplier,
+      it.productName,
+      it.quantity,
+      `$${it.unitCostUSD.toFixed(2)}`,
+      `$${it.subtotalUSD.toFixed(2)}`,
+      p.userName,
+    ])
+  );
+
+  (doc as any).autoTable({
+    startY: y,
+    head: [['Fecha', 'Proveedor', 'Producto', 'Cantidad', 'Costo Unit. USD', 'Subtotal USD', 'Usuario']],
+    body: rows,
+    styles: { fontSize: 7 },
+  });
+
+  doc.save('reporte_compras.pdf');
+};
