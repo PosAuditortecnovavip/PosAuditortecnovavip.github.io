@@ -106,13 +106,27 @@ export interface Customer {
   createdAt: string;
 }
 
-export interface Purchase {
+export interface Supplier {
   id: string;
+  name: string;
+  phone: string;
+  email: string;
+  createdAt: string;
+}
+
+export interface PurchaseItem {
   productId: string;
   productName: string;
-  supplier: string;
+  productCode: string;
   quantity: number;
   unitCostUSD: number;
+  subtotalUSD: number;
+}
+
+export interface Purchase {
+  id: string;
+  supplier: string;
+  items: PurchaseItem[];
   totalUSD: number;
   userId: string;
   userName: string;
