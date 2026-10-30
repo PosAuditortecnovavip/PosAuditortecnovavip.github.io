@@ -238,34 +238,18 @@ export const generateMovementsReport = (movements: InventoryMovement[], exchange
   doc.save('reporte_movimientos.pdf');
 };
 
-export const generatePurchasesReport = (purchases: Purchase[], exchangeRate: number): void => {
-  const doc = new jsPDF(); const pageWidth = doc.internal.pageSize.getWidth(); let y = 15;
-  y = header(doc, pageWidth, 'Reporte de Compras', y);
-  doc.setFontSize(10); doc.setFont('helvetica', 'normal');
-  doc.text(`Fecha: ${new Date().toLocaleDateString('es-VE')} | Tasa BCV: ${exchangeRate.toFixed(2)} Bs/USD`, 14, y); y += 8;
-  const totalUSD = purchases.reduce((s, p) => s + p.totalUSD, 0);
-  doc.setFontSize(12); doc.setFont('helvetica', 'bold');
-  doc.text(`Total invertido: $${totalUSD.toFixed(2)} / Bs ${(totalUSD * exchangeRate).toFixed(2)}`, 14, y); y += 6;
-  (doc as any).autoTable({
-    startY: y,
-    head: [['Fecha', 'Producto', 'Proveedor', 'Cantidad', 'Costo Unit. USD', 'Total USD', 'Usuario']],
-    body: purchases.map((p) => [
-      new Date(p.createdAt).toLocaleString('es-VE'), p.productName, p.supplier, p.quantity,
-      `$${p.unitCostUSD.toFixed(2)}`, `$${p.totalUSD.toFixed(2)}`, p.userName,
-    ]),
-    styles: { fontSize: 7 },
-  });
-  doc.save('reporte_compras.pdf');
-};
+// 👇 ESTA ES LA FUNCIÓN ÚNICA Y CORREGIDA DE COMPRAS 👇
 export const generatePurchasesReport = (purchases: Purchase[], exchangeRate: number): void => {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
   let y = 15;
+  
   y = header(doc, pageWidth, 'Reporte de Compras', y);
   doc.setFontSize(10);
   doc.setFont('helvetica', 'normal');
   doc.text(`Fecha: ${new Date().toLocaleDateString('es-VE')} | Tasa BCV: ${exchangeRate.toFixed(2)} Bs/USD`, 14, y);
   y += 8;
+  
   const totalUSD = purchases.reduce((s, p) => s + p.totalUSD, 0);
   doc.setFontSize(12);
   doc.setFont('helvetica', 'bold');
