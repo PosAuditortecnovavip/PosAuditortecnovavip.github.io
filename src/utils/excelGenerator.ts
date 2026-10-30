@@ -69,15 +69,6 @@ export const exportProductLogsExcel = (logs: ProductLogEntry[]): void => {
   XLSX.writeFile(wb, `${BRAND}_RegistroProductos_${new Date().toISOString().slice(0, 10)}.xlsx`);
 };
 
-export const exportPurchasesExcel = (purchases: Purchase[]): void => {
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, makeSheet(purchases.map(p => ({
-    Fecha: new Date(p.createdAt).toLocaleString('es-VE'), Producto: p.productName, Proveedor: p.supplier,
-    Cantidad: p.quantity, 'Costo Unit. USD': p.unitCostUSD.toFixed(2), 'Total USD': p.totalUSD.toFixed(2), Usuario: p.userName,
-  }))), 'Compras');
-  XLSX.writeFile(wb, `${BRAND}_Compras_${new Date().toISOString().slice(0, 10)}.xlsx`);
-};
-
 export const exportCustomersExcel = (customers: Customer[]): void => {
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, makeSheet(customers.map(c => ({
@@ -93,6 +84,8 @@ export const exportUsersExcel = (users: User[]): void => {
   }))), 'Usuarios');
   XLSX.writeFile(wb, `${BRAND}_Usuarios_${new Date().toISOString().slice(0, 10)}.xlsx`);
 };
+
+// 👇 ESTA ES LA FUNCIÓN ÚNICA Y CORREGIDA DE COMPRAS EN EXCEL 👇
 export const exportPurchasesExcel = (purchases: Purchase[]): void => {
   const wb = XLSX.utils.book_new();
   const rows = purchases.flatMap((p) =>
