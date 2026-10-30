@@ -93,3 +93,20 @@ export const exportUsersExcel = (users: User[]): void => {
   }))), 'Usuarios');
   XLSX.writeFile(wb, `${BRAND}_Usuarios_${new Date().toISOString().slice(0, 10)}.xlsx`);
 };
+export const exportPurchasesExcel = (purchases: Purchase[]): void => {
+  const wb = XLSX.utils.book_new();
+  const rows = purchases.flatMap((p) =>
+    p.items.map((it) => ({
+      Fecha: new Date(p.createdAt).toLocaleString('es-VE'),
+      Proveedor: p.supplier,
+      Producto: it.productName,
+      Código: it.productCode,
+      Cantidad: it.quantity,
+      'Costo Unit. USD': it.unitCostUSD.toFixed(2),
+      'Subtotal USD': it.subtotalUSD.toFixed(2),
+      Usuario: p.userName,
+    }))
+  );
+  XLSX.utils.book_append_sheet(wb, makeSheet(rows), 'Compras');
+  XLSX.writeFile(wb, `${BRAND}_Compras_${new Date().toISOString().slice(0, 10)}.xlsx`);
+};
