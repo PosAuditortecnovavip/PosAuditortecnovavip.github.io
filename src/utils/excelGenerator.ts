@@ -85,11 +85,12 @@ export const exportUsersExcel = (users: User[]): void => {
   XLSX.writeFile(wb, `${BRAND}_Usuarios_${new Date().toISOString().slice(0, 10)}.xlsx`);
 };
 
-// 👇 ESTA ES LA FUNCIÓN ÚNICA Y CORREGIDA DE COMPRAS EN EXCEL 👇
 export const exportPurchasesExcel = (purchases: Purchase[]): void => {
   const wb = XLSX.utils.book_new();
+  
+  // Mapeo correcto para compras múltiples
   const rows = purchases.flatMap((p) =>
-    p.items.map((it) => ({
+    (p.items || []).map((it) => ({
       Fecha: new Date(p.createdAt).toLocaleString('es-VE'),
       Proveedor: p.supplier,
       Producto: it.productName,
@@ -100,6 +101,7 @@ export const exportPurchasesExcel = (purchases: Purchase[]): void => {
       Usuario: p.userName,
     }))
   );
+  
   XLSX.utils.book_append_sheet(wb, makeSheet(rows), 'Compras');
   XLSX.writeFile(wb, `${BRAND}_Compras_${new Date().toISOString().slice(0, 10)}.xlsx`);
 };
