@@ -238,7 +238,6 @@ export const generateMovementsReport = (movements: InventoryMovement[], exchange
   doc.save('reporte_movimientos.pdf');
 };
 
-// 👇 ESTA ES LA FUNCIÓN ÚNICA Y CORREGIDA DE COMPRAS 👇
 export const generatePurchasesReport = (purchases: Purchase[], exchangeRate: number): void => {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
@@ -257,7 +256,7 @@ export const generatePurchasesReport = (purchases: Purchase[], exchangeRate: num
   y += 6;
 
   const rows = purchases.flatMap((p) =>
-    p.items.map((it) => [
+    (p.items || []).map((it) => [
       new Date(p.createdAt).toLocaleString('es-VE'),
       p.supplier,
       it.productName,
@@ -270,7 +269,7 @@ export const generatePurchasesReport = (purchases: Purchase[], exchangeRate: num
 
   (doc as any).autoTable({
     startY: y,
-    head: [['Fecha', 'Proveedor', 'Producto', 'Cantidad', 'Costo Unit. USD', 'Subtotal USD', 'Usuario']],
+    head: [['Fecha', 'Proveedor', 'Producto', 'Cantidad', 'Costo Unit.', 'Subtotal', 'Usuario']],
     body: rows,
     styles: { fontSize: 7 },
   });
