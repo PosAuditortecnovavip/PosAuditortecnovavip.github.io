@@ -1,4 +1,4 @@
-name: Deploy Audity Pro
+name: Build Desktop App
 
 on:
   push:
@@ -9,8 +9,8 @@ permissions:
   contents: write
 
 jobs:
-  build-and-deploy:
-    runs-on: ubuntu-latest
+  build-desktop:
+    runs-on: windows-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -20,21 +20,22 @@ jobs:
         with:
           node-version: 20
 
-      - name: Clean install dependencies
-        run: |
-          rm -rf node_modules package-lock.json
-          npm install
+      - name: Install dependencies
+        run: npm install
 
-      - name: Fix permissions for Vite
-        run: chmod +x node_modules/.bin/*
-
-      - name: Build project
+      - name: Build Web App
         run: npm run build
 
-      - name: Deploy to GitHub Pages
-        uses: JamesIves/github-pages-deploy-action@v4
+      - name: Build Electron App (.exe)
+        run: npx electron-builder --win nsis
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload Release
+        uses: softprops/action-gh-release@v1
         with:
-          branch: gh-pages
-          folder: dist
-          clean: true
-          token: ${{ secrets.GITHUB_TOKEN }}
+          tag_name: v1.0.${{ github.run_number }}
+          name: Tecnova VIP v1.0.${{ github.run_number }}
+          files: dist-electron/TecnovaVIP-Setup.exe
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
