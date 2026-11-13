@@ -121,14 +121,15 @@ export default function PurchaseForm({ products, onSubmit, onCancel }: Props) {
   return (
     <motion.form initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} onSubmit={handleSubmit} className="glass-card p-5 md:p-6 space-y-5">
       <div className="flex justify-between items-center">
-        <h3 className="font-bold text-xl">Registrar Compra</h3>
+        {/* TÍTULO MODIFICADO PARA SABER SI SE ACTUALIZÓ */}
+        <h3 className="font-bold text-xl text-primary">Registrar Compra (Múltiples Productos)</h3>
         <button type="button" onClick={onCancel} className="text-text-muted hover:text-text-primary p-2" aria-label="Cerrar"><X size={22} /></button>
       </div>
 
       <SupplierSelector suppliers={suppliers} selectedSupplierName={supplier} onChange={setSupplier} onNewSupplier={handleNewSupplier} />
 
       <div className="border border-border/50 rounded-xl p-4 space-y-4">
-        <h4 className="font-bold text-base">Agregar producto</h4>
+        <h4 className="font-bold text-base">Agregar producto a la lista</h4>
 
         <div className="flex gap-2">
           <button type="button" onClick={() => setIsNewProduct(false)} className={`flex-1 py-2 rounded-xl text-sm font-medium transition ${!isNewProduct ? 'bg-primary/20 border-2 border-primary text-primary' : 'bg-surface/30 border-2 border-transparent'}`}>Producto existente</button>
@@ -176,30 +177,34 @@ export default function PurchaseForm({ products, onSubmit, onCancel }: Props) {
           <div><label className="block text-sm font-medium text-text-secondary mb-1">Costo unitario USD</label><input type="number" step="0.01" min="0" value={unitCostUSD} onChange={(e) => setUnitCostUSD(e.target.value)} placeholder="0.00" className="w-full bg-surface border border-border rounded-xl p-3.5 text-base outline-none focus:border-primary" /></div>
         </div>
 
-        <button type="button" onClick={handleAddItem} className="w-full py-2.5 bg-primary/20 text-primary hover:bg-primary/30 rounded-xl font-bold text-sm flex items-center justify-center gap-2"><Plus size={16} /> Agregar a la lista de compra</button>
+        <button type="button" onClick={handleAddItem} className="w-full py-3 bg-primary/20 text-primary hover:bg-primary/30 rounded-xl font-bold text-base flex items-center justify-center gap-2 border-2 border-primary border-dashed transition">
+          <Plus size={20} /> Agregar a la lista de compra
+        </button>
       </div>
 
-      <div className="space-y-2">
-        <h4 className="font-bold text-base">Productos en esta compra ({items.length})</h4>
-        {items.length === 0 ? <p className="text-text-muted text-sm">Aún no hay productos en la lista.</p> : items.map((item, index) => (
-          <div key={index} className="flex justify-between items-center bg-surface/30 rounded-lg p-3 text-sm">
+      <div className="space-y-2 bg-surface/20 p-4 rounded-xl border border-border/50">
+        <h4 className="font-bold text-base mb-2">Lista de productos en esta compra ({items.length})</h4>
+        {items.length === 0 ? <p className="text-text-muted text-sm italic">Aún no has agregado productos a la lista.</p> : items.map((item, index) => (
+          <div key={index} className="flex justify-between items-center bg-surface rounded-lg p-3 text-sm border border-border/50">
             <div className="flex-1 min-w-0">
               <p className="font-medium truncate">{item.productName}</p>
               <p className="text-text-muted text-xs">{item.productCode} · {item.quantity} × ${item.unitCostUSD.toFixed(2)}</p>
             </div>
-            <div className="flex items-center gap-2 ml-2">
+            <div className="flex items-center gap-3 ml-2">
               <span className="font-bold text-primary">${(item.quantity * item.unitCostUSD).toFixed(2)}</span>
-              <button type="button" onClick={() => handleRemoveItem(index)} className="text-danger hover:bg-danger/10 p-1.5 rounded"><Trash2 size={16} /></button>
+              <button type="button" onClick={() => handleRemoveItem(index)} className="text-danger hover:bg-danger/10 p-2 rounded-lg"><Trash2 size={18} /></button>
             </div>
           </div>
         ))}
       </div>
 
-      {items.length > 0 && <div className="bg-surface/30 rounded-xl p-3 text-base"><strong>Total de la compra:</strong> ${totalUSD.toFixed(2)}</div>}
+      {items.length > 0 && <div className="bg-primary/10 border border-primary/20 rounded-xl p-4 text-lg text-center"><strong>Total de la compra:</strong> <span className="font-bold text-primary">${totalUSD.toFixed(2)}</span></div>}
 
-      <div className="flex gap-3">
-        <button type="submit" disabled={saving || items.length === 0} className="flex-1 py-3.5 bg-gradient-to-r from-primary to-accent rounded-xl font-bold text-white text-base transition hover:from-primary-dark hover:to-accent-light disabled:opacity-50">{saving ? 'Guardando...' : 'Registrar Compra'}</button>
-        <button type="button" onClick={onCancel} className="px-5 py-3.5 border border-border rounded-xl text-base text-text-secondary hover:bg-surface/50 transition">Cancelar</button>
+      <div className="flex gap-3 pt-2">
+        <button type="submit" disabled={saving || items.length === 0} className="flex-1 py-4 bg-gradient-to-r from-primary to-accent rounded-xl font-bold text-white text-base md:text-lg transition hover:from-primary-dark hover:to-accent-light disabled:opacity-50 shadow-lg shadow-primary/20">
+          {saving ? 'Guardando Compra...' : 'Registrar Compra Completa'}
+        </button>
+        <button type="button" onClick={onCancel} className="px-6 py-4 border border-border rounded-xl text-base text-text-secondary hover:bg-surface/50 transition">Cancelar</button>
       </div>
     </motion.form>
   );
