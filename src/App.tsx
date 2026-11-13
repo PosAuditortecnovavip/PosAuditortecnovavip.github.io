@@ -26,8 +26,11 @@ function MainApp() {
   return (
     <div className="min-h-screen bg-aurora text-text-primary">
       <ManualRateModal />
+      
+      {/* AQUÍ ESTÁ LA CORRECCIÓN: Se le pasan las props al Navbar */}
       <Navbar activeView={activeView} onNavigate={setActiveView} />
-      <main className="max-w-7xl mx-auto p-3 md:p-8">
+      
+      <main className="max-w-[1600px] mx-auto p-3 md:p-6">
         {activeView === 'dashboard' && <Dashboard />}
         {activeView === 'sales' && <Sales />}
         {activeView === 'inventory' && <Inventory />}
