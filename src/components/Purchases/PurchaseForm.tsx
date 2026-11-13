@@ -162,7 +162,6 @@ export default function PurchaseForm({ products, onSubmit, onCancel }: Props) {
                 <ul className="list-disc pl-4 text-text-secondary">
                   {similarWarning.map(p => <li key={p.id}>{p.name} ({p.code}) — Stock: {p.stock}</li>)}
                 </ul>
-                <p className="text-xs text-text-muted mt-1">¿Está seguro de que desea crear un nuevo producto o prefiere usar uno existente?</p>
               </div>
             </div>
             <div className="flex gap-2 pt-1">
@@ -177,12 +176,12 @@ export default function PurchaseForm({ products, onSubmit, onCancel }: Props) {
           <div><label className="block text-sm font-medium text-text-secondary mb-1">Costo unitario USD</label><input type="number" step="0.01" min="0" value={unitCostUSD} onChange={(e) => setUnitCostUSD(e.target.value)} placeholder="0.00" className="w-full bg-surface border border-border rounded-xl p-3.5 text-base outline-none focus:border-primary" /></div>
         </div>
 
-        <button type="button" onClick={handleAddItem} className="w-full py-2.5 bg-primary/20 text-primary hover:bg-primary/30 rounded-xl font-bold text-sm flex items-center justify-center gap-2"><Plus size={16} /> Agregar a la compra</button>
+        <button type="button" onClick={handleAddItem} className="w-full py-2.5 bg-primary/20 text-primary hover:bg-primary/30 rounded-xl font-bold text-sm flex items-center justify-center gap-2"><Plus size={16} /> Agregar a la lista de compra</button>
       </div>
 
       <div className="space-y-2">
         <h4 className="font-bold text-base">Productos en esta compra ({items.length})</h4>
-        {items.length === 0 ? <p className="text-text-muted text-sm">Aún no hay productos.</p> : items.map((item, index) => (
+        {items.length === 0 ? <p className="text-text-muted text-sm">Aún no hay productos en la lista.</p> : items.map((item, index) => (
           <div key={index} className="flex justify-between items-center bg-surface/30 rounded-lg p-3 text-sm">
             <div className="flex-1 min-w-0">
               <p className="font-medium truncate">{item.productName}</p>
