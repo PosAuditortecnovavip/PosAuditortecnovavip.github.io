@@ -25,7 +25,7 @@ jobs:
           rm -rf node_modules package-lock.json
           npm install
 
-      - name: Fix permissions
+      - name: Fix permissions for Vite
         run: chmod +x node_modules/.bin/*
 
       - name: Build project
