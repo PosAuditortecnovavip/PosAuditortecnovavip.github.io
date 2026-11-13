@@ -50,7 +50,7 @@ export default function Dashboard() {
   const isLoading = salesLoading || inventoryLoading || financeLoading;
   const { weeklySales, topProducts } = useDashboardAdvanced(todaySales);
 
-  // URL del instalador de la App de PC (Apunta a los Releases de GitHub)
+  // URL del instalador de la App de PC
   const downloadUrl = "https://github.com/PosAuditortecnovavip/PosAuditortecnovavip.github.io/releases/latest/download/TecnovaVIP-Setup.exe";
 
   return (
