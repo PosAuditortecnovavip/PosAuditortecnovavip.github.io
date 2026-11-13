@@ -125,10 +125,8 @@ export default function PurchaseForm({ products, onSubmit, onCancel }: Props) {
         <button type="button" onClick={onCancel} className="text-text-muted hover:text-danger p-2 transition" aria-label="Cerrar"><X size={24} /></button>
       </div>
 
-      {/* 1. Proveedor */}
       <SupplierSelector suppliers={suppliers} selectedSupplierName={supplier} onChange={setSupplier} onNewSupplier={handleNewSupplier} />
 
-      {/* 2. Agregar Producto */}
       <div className="border border-primary/30 bg-primary/5 rounded-xl p-4 space-y-4">
         <h4 className="font-bold text-base text-primary flex items-center gap-2">
           <Plus size={18} /> Paso 1: Añadir productos a la lista
@@ -179,13 +177,11 @@ export default function PurchaseForm({ products, onSubmit, onCancel }: Props) {
           <div><label className="block text-xs font-medium text-text-secondary mb-1">Costo unitario USD</label><input type="number" step="0.01" min="0" value={unitCostUSD} onChange={(e) => setUnitCostUSD(e.target.value)} placeholder="0.00" className="w-full bg-surface border border-border rounded-xl p-3 text-base font-bold outline-none focus:border-primary" /></div>
         </div>
 
-        {/* 👇 BOTÓN NARANJA BRILLANTE 👇 */}
         <button type="button" onClick={handleAddItem} className="w-full py-4 bg-orange-500 text-white hover:bg-orange-600 rounded-xl font-bold text-lg flex items-center justify-center gap-2 transition shadow-lg shadow-orange-500/30 mt-2 border-2 border-orange-400">
           <Plus size={24} /> AÑADIR A LA LISTA
         </button>
       </div>
 
-      {/* 3. Lista y Totales */}
       <div className="bg-surface-dark/50 p-4 rounded-xl border border-border">
         <h4 className="font-bold text-lg mb-3 flex items-center gap-2">Paso 2: Lista de compra <span className="bg-primary text-white text-xs px-2 py-1 rounded-full">{items.length}</span></h4>
         
