@@ -3,7 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "homepage": "https://scruta13-beep.github.io/",
+  "homepage": "https://posauditortecnovavip.github.io/",
   "scripts": {
     "dev": "npx vite",
     "build": "npx tsc -b && npx vite build",
