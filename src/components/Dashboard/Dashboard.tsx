@@ -1,135 +1,133 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { useExchangeRate } from '../../context/ExchangeRateContext';
-import { motion } from 'framer-motion';
+import { UserRole } from '../../types';
 import {
-  PackageOpen, ShoppingCart, TrendingUp, TrendingDown,
-  DollarSign, Activity, RefreshCw, Bell, Download
+  LayoutDashboard, ShoppingCart, PackageOpen, ClipboardCheck,
+  DollarSign, FileText, LogOut, TrendingUp, Menu, X, Users,
+  RefreshCw, Edit3, Bell, Sun, Moon, UserPlus, ShoppingBag,
 } from 'lucide-react';
-import { getTodaySales } from '../../services/salesService';
-import { useInventory } from '../../hooks/useInventory';
-import { useFinance } from '../../hooks/useFinance';
+import { useExchangeRate } from '../../context/ExchangeRateContext';
+import { useTheme } from '../../context/ThemeContext';
 import { useNotifications } from '../../hooks/useNotifications';
-import { useDashboardAdvanced } from '../../hooks/useDashboardAdvanced';
-import DashboardCharts from './DashboardCharts';
-import AdvancedCharts from './AdvancedCharts';
-import { Sale } from '../../types';
+import { motion, AnimatePresence } from 'framer-motion';
 
-export default function Dashboard() {
-  const { user } = useAuth();
-  const { rate, formatUSD, refresh: refreshRate, loading: rateLoading } = useExchangeRate();
-  const { products, loading: inventoryLoading } = useInventory();
-  const { transactions, loading: financeLoading } = useFinance();
-  const lowStockProducts = useNotifications();
+export type ViewId = 'dashboard' | 'sales' | 'inventory' | 'audit' | 'finance' | 'reports' | 'customers' | 'users' | 'backup' | 'purchases';
 
-  const [todaySales, setTodaySales] = useState<Sale[]>([]);
-  const [salesLoading, setSalesLoading] = useState(true);
+const navItems: { id: ViewId; label: string; icon: typeof LayoutDashboard; roles: UserRole[] }[] = [
+  { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, roles: [UserRole.ADMIN, UserRole.SELLER, UserRole.INVENTORY] },
+  { id: 'sales', label: 'Ventas', icon: ShoppingCart, roles: [UserRole.ADMIN, UserRole.SELLER] },
+  { id: 'inventory', label: 'Inventario', icon: PackageOpen, roles: [UserRole.ADMIN, UserRole.INVENTORY] },
+  { id: 'purchases', label: 'Compras', icon: ShoppingBag, roles: [UserRole.ADMIN, UserRole.INVENTORY] },
+  { id: 'audit', label: 'Auditoría', icon: ClipboardCheck, roles: [UserRole.ADMIN, UserRole.INVENTORY] },
+  { id: 'finance', label: 'Finanzas', icon: DollarSign, roles: [UserRole.ADMIN] },
+  { id: 'reports', label: 'Reportes', icon: FileText, roles: [UserRole.ADMIN, UserRole.INVENTORY] },
+  { id: 'customers', label: 'Clientes', icon: Users, roles: [UserRole.ADMIN] },
+  { id: 'users', label: 'Usuarios', icon: UserPlus, roles: [UserRole.ADMIN] },
+  { id: 'backup', label: 'Copia Seg.', icon: FileText, roles: [UserRole.ADMIN] },
+];
 
-  useEffect(() => {
-    getTodaySales().then(setTodaySales).catch(console.error).finally(() => setSalesLoading(false));
-  }, []);
+interface NavbarProps {
+  activeView: ViewId;
+  onNavigate: (view: ViewId) => void;
+}
 
-  useEffect(() => {
-    const h = () => getTodaySales().then(setTodaySales).catch(console.error);
-    window.addEventListener('inventory-updated', h);
-    return () => window.removeEventListener('inventory-updated', h);
-  }, []);
+export default function Navbar({ activeView, onNavigate }: NavbarProps) {
+  const { user, logout } = useAuth();
+  const { rate, loading: rateLoading, refresh: refreshRate, promptManualRate } = useExchangeRate();
+  const { theme, toggleTheme } = useTheme();
+  const lowStock = useNotifications();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const totalSalesToday = todaySales.reduce((sum, s) => sum + s.totalUSD, 0);
-  const totalInventoryValue = products.reduce((sum, p) => sum + p.costUSD * p.stock, 0);
-  const today = new Date().toISOString().split('T')[0];
-  const todayExpenses = transactions.filter((t) => t.createdAt.startsWith(today) && t.type === 'expense').reduce((s, t) => s + t.amountUSD, 0);
-
-  const stats = [
-    { label: 'Ventas Hoy', value: totalSalesToday, icon: ShoppingCart, color: 'primary' },
-    { label: 'Valor Inventario', value: totalInventoryValue, icon: PackageOpen, color: 'success' },
-    { label: 'Ingresos', value: totalSalesToday, icon: TrendingUp, color: 'warning' },
-    { label: 'Egresos', value: todayExpenses, icon: TrendingDown, color: 'danger' },
-  ];
-
-  const isLoading = salesLoading || inventoryLoading || financeLoading;
-  const { weeklySales, topProducts } = useDashboardAdvanced(todaySales);
-
-  // URL del instalador de la App de PC
-  const downloadUrl = "https://github.com/PosAuditortecnovavip/PosAuditortecnovavip.github.io/releases/latest/download/TecnovaVIP-Setup.exe";
+  if (!user) return null;
+  const allowedItems = navItems.filter((item) => item.roles.includes(user.role));
+  const handleRefreshRate = async () => { try { await refreshRate(); } catch (e) { console.error(e); } };
 
   return (
-    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }} className="space-y-5 md:space-y-8">
-      
-      {/* ENCABEZADO CON BOTÓN DE DESCARGA */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-surface/20 p-4 md:p-6 rounded-2xl border border-border/50">
-        <div>
-          <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-            Tecnova VIP
-          </h1>
-          <p className="text-sm md:text-base font-medium text-text-primary mt-1">Audity Pro · Panel de Control</p>
-          <p className="text-text-secondary mt-0.5 text-sm">Bienvenido, {user?.name}</p>
-        </div>
+    <nav className="bg-surface/80 backdrop-blur-xl border-b border-border/50 sticky top-0 z-40 shadow-sm">
+      <div className="max-w-[1600px] mx-auto px-4 flex items-center justify-between h-16">
         
-        {/* BOTÓN DE DESCARGA PARA PC */}
-        <a 
-          href={downloadUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center justify-center gap-3 px-6 py-3.5 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold rounded-xl shadow-lg shadow-green-500/30 transition-all transform hover:scale-105"
-        >
-          <Download size={22} className="animate-bounce" />
-          <div className="flex flex-col items-start leading-tight">
-            <span className="text-sm md:text-base">Descargar App para PC</span>
-            <span className="text-[10px] text-green-100 font-normal">Windows (.exe)</span>
+        {/* LOGO */}
+        <div className="flex flex-col leading-tight shrink-0 mr-4">
+          <span className="text-xl font-extrabold tracking-tight bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+            Tecnova VIP
+          </span>
+          <span className="text-[10px] text-text-muted font-medium">Audity Pro</span>
+        </div>
+
+        {/* MENÚ ESCRITORIO - Ahora con scroll horizontal si no cabe */}
+        <div className="hidden lg:flex items-center gap-1 overflow-x-auto no-scrollbar flex-1 px-2">
+          {allowedItems.map(({ id, label, icon: Icon }) => (
+            <button
+              key={id}
+              onClick={() => onNavigate(id)}
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
+                activeView === id
+                  ? 'bg-primary/10 text-primary'
+                  : 'text-text-secondary hover:bg-surface hover:text-text-primary'
+              }`}
+            >
+              <Icon size={16} />
+              <span>{label}</span>
+            </button>
+          ))}
+        </div>
+
+        {/* ACCIONES (Tasa, Tema, Usuario) */}
+        <div className="hidden lg:flex items-center gap-3 shrink-0">
+          {rate && (
+            <div className="flex items-center gap-1 bg-surface/50 rounded-lg px-2 py-1.5 text-xs font-medium border border-border/50">
+              <TrendingUp size={14} className="text-primary" />
+              <span>BCV: {rate.rate.toFixed(2)}</span>
+              <button onClick={handleRefreshRate} disabled={rateLoading} className="p-1 hover:text-primary transition disabled:opacity-50"><RefreshCw size={12} className={rateLoading ? 'animate-spin' : ''} /></button>
+              <button onClick={promptManualRate} className="p-1 hover:text-primary transition"><Edit3 size={12} /></button>
+            </div>
+          )}
+          {lowStock.length > 0 && (
+            <div className="relative">
+              <Bell size={18} className="text-warning" />
+              <span className="absolute -top-1 -right-1 bg-danger text-white text-[9px] font-bold rounded-full w-4 h-4 flex items-center justify-center">{lowStock.length}</span>
+            </div>
+          )}
+          <button onClick={toggleTheme} className="p-2 rounded-lg hover:bg-surface transition text-text-secondary">
+            {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+          </button>
+          <div className="flex flex-col items-end mr-2">
+            <span className="text-xs font-bold text-text-primary">{user.name}</span>
+            <span className="text-[10px] text-text-muted capitalize">{user.role}</span>
           </div>
-        </a>
+          <button onClick={logout} className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-danger hover:bg-danger/10 rounded-lg transition">
+            <LogOut size={16} /> Salir
+          </button>
+        </div>
+
+        {/* MENÚ MÓVIL */}
+        <div className="flex lg:hidden items-center gap-2">
+          <button onClick={toggleTheme} className="p-2 text-text-secondary"><Sun size={20} /></button>
+          <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="p-2 text-text-primary">
+            {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
+        </div>
       </div>
 
-      {lowStockProducts.length > 0 && (
-        <div className="glass-card px-4 py-3 flex items-center justify-between gap-2 text-warning border-warning/30 bg-warning/5">
-          <div className="flex items-center gap-2">
-            <Bell size={20} className="animate-pulse" />
-            <span className="font-medium">{lowStockProducts.length} productos están por debajo del stock mínimo</span>
-          </div>
-        </div>
-      )}
-
-      {isLoading ? (
-        <div className="text-center py-12"><RefreshCw className="animate-spin mx-auto text-primary" size={32} /></div>
-      ) : (
-        <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
-            {stats.map(({ label, value, icon: Icon, color }) => (
-              <motion.div key={label} whileHover={{ y: -4 }} className="glass-card p-4 md:p-6 flex items-center gap-4 md:gap-5">
-                <div className={`w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-${color}/20 flex items-center justify-center shadow-lg shadow-${color}/10 shrink-0`}>
-                  <Icon size={22} className={`text-${color}`} />
-                </div>
-                <div>
-                  <p className="text-[10px] md:text-xs font-medium text-text-muted uppercase tracking-wider">{label}</p>
-                  <p className="text-xl md:text-2xl font-bold mt-0.5 md:mt-1 text-text-primary">{formatUSD(value)}</p>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-
-          {rate && (
-            <div className="glass-card p-4 md:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div className="flex items-center gap-3 md:gap-4">
-                <div className="w-10 h-10 md:w-12 md:h-12 rounded-2xl bg-primary/20 flex items-center justify-center shrink-0"><DollarSign size={20} className="text-primary" /></div>
-                <div>
-                  <p className="text-[10px] md:text-xs font-medium text-text-muted uppercase tracking-wider">Tasa BCV oficial</p>
-                  <p className="text-xl md:text-2xl font-bold text-text-primary">{rate.rate.toFixed(2)} Bs/USD</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2 text-xs text-text-muted"><Activity size={14} /><span>Actualizado: {new Date(rate.date).toLocaleString('es-VE')}</span></div>
-                <button onClick={refreshRate} disabled={rateLoading} className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-primary/10 text-primary text-xs font-medium hover:bg-primary/20 transition disabled:opacity-50">
-                  <RefreshCw size={14} className={rateLoading ? 'animate-spin' : ''} /> Actualizar
+      {/* DROPDOWN MÓVIL */}
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <motion.div initial={{ height: 0 }} animate={{ height: 'auto' }} exit={{ height: 0 }} className="lg:hidden overflow-hidden bg-surface border-t border-border/50">
+            <div className="p-3 space-y-1">
+              {allowedItems.map(({ id, label, icon: Icon }) => (
+                <button key={id} onClick={() => { onNavigate(id); setMobileMenuOpen(false); }} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition ${activeView === id ? 'bg-primary/10 text-primary' : 'text-text-secondary'}`}>
+                  <Icon size={18} />{label}
+                </button>
+              ))}
+              <div className="border-t border-border/50 pt-2 mt-2">
+                <button onClick={() => { logout(); setMobileMenuOpen(false); }} className="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-bold text-danger bg-danger/10 rounded-xl">
+                  <LogOut size={18} />Cerrar Sesión
                 </button>
               </div>
             </div>
-          )}
-
-          <DashboardCharts products={products} sales={todaySales} transactions={transactions} />
-          <AdvancedCharts weeklySales={weeklySales} topProducts={topProducts} />
-        </>
-      )}
-    </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </nav>
   );
 }
