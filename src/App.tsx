@@ -26,7 +26,10 @@ function MainApp() {
   return (
     <div className="min-h-screen bg-aurora text-text-primary">
       <ManualRateModal />
+      
+      {/* AQUÍ SE PASAN LAS PROPIEDADES OBLIGATORIAS */}
       <Navbar activeView={activeView} onNavigate={setActiveView} />
+      
       <main className="max-w-[1600px] mx-auto p-3 md:p-6">
         {activeView === 'dashboard' && <Dashboard />}
         {activeView === 'sales' && <Sales />}
